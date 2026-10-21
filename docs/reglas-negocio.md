@@ -1,0 +1,11 @@
+Reglas del negocio
+-Cada visita del vehículo genera una orden nueva.
+-Una orden contiene un solo servicio.
+-Una placa no puede tener dos órdenes activas.
+-Los estados son: En espera, En lavado, Listo para entregar y Entregado.
+-Solo se puede cancelar una orden en espera y debe registrarse el motivo.
+-Una orden conserva el nombre y precio del servicio acordados al crearla.
+-Desactivar un servicio impide seleccionarlo en nuevas órdenes.
+-Las órdenes finalizadas o canceladas permanecen en el historial.
+-Cada cambio de estado registra fecha, hora y usuario.
+-Los indicadores filtran por fecha de ingreso y muestran el estado actual de esas órdenes.
