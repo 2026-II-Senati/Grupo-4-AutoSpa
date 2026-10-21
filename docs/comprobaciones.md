@@ -150,11 +150,6 @@ Para completar esta tarea:
 1. Verificar que los cinco casos incluyen preparación, pasos y resultado esperado.
 2. Confirmar que los comandos, las rutas y los puertos mencionados coinciden con la configuración real del proyecto.
 3. Guardar el documento en `docs/comprobaciones.md`.
-4. Crear una rama de trabajo a partir de `develop`.
-5. Añadir y confirmar el archivo en Git.
-6. Subir la rama al repositorio remoto.
-7. Crear un Pull Request dirigido a `develop`, incluyendo el propósito del documento y un resumen de los casos incorporados.
-8. Solicitar la revisión correspondiente.
-9. Corregir las observaciones y comprobar que el archivo queda integrado en `develop`.
+4. Solicitar la revisión correspondiente y comprobar que el archivo queda integrado en `develop`.
 
 **Condición de cierre:** la guía está completa, revisada e integrada en `develop`. La ejecución efectiva de las comprobaciones corresponde a los tickets de implementación.
