@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 const menuItems = [
   { id: 'orders', label: 'Órdenes activas', icon: '▤' },
   { id: 'history', label: 'Historial', icon: '◷' },
@@ -12,6 +14,25 @@ function AutoSpaMark() {
 }
 
 function App() {
+  const [connectionStatus, setConnectionStatus] = useState('');
+  const [checkingConnection, setCheckingConnection] = useState(false);
+
+  async function checkBackendConnection() {
+    setCheckingConnection(true);
+    setConnectionStatus('Comprobando conexión…');
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/health`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setConnectionStatus('Conexión con el backend establecida.');
+    } catch {
+      setConnectionStatus('No se pudo conectar con el backend. Verifica que esté disponible.');
+    } finally {
+      setCheckingConnection(false);
+    }
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar" aria-label="Navegación principal">
@@ -52,6 +73,12 @@ function App() {
             <div className="hero-hint">
               <span className="hero-hint-mark" aria-hidden="true">↖</span>
               <span>Selecciona una sección del menú para comenzar</span>
+            </div>
+            <div className="connection-check">
+              <button type="button" onClick={checkBackendConnection} disabled={checkingConnection}>
+                {checkingConnection ? 'Comprobando…' : 'Comprobar conexión'}
+              </button>
+              {connectionStatus && <p role="status" aria-live="polite">{connectionStatus}</p>}
             </div>
           </div>
         </section>

@@ -50,6 +50,12 @@ h1 span { color: var(--teal); }
 .welcome-copy { max-width: 500px; margin: 0 auto; color: #71858a; font-size: 14px; line-height: 1.7; }
 .hero-hint { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 34px; color: #607b7c; font-size: 11px; font-weight: 600; }
 .hero-hint-mark { display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid #c4dfda; border-radius: 50%; background: #f7fbfa; color: var(--teal); font-size: 15px; }
+.connection-check { margin-top: 22px; }
+.connection-check button { min-height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: var(--teal); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .2s, opacity .2s; }
+.connection-check button:hover:not(:disabled) { background: var(--teal-dark); }
+.connection-check button:disabled { cursor: wait; opacity: .7; }
+.connection-check button:focus-visible { outline: 3px solid #9bd4ce; outline-offset: 3px; }
+.connection-check p { margin: 10px 0 0; color: #607b7c; font-size: 12px; }
 .page-footer { display: flex; justify-content: space-between; margin-top: auto; padding: 23px 0; border-top: 1px solid #e5ebed; color: #a0abad; font-size: 10px; }
 .footer-mark { font-size: 9px; font-weight: 700; letter-spacing: 1px; }
 .footer-mark span { padding: 0 3px; color: var(--teal); }

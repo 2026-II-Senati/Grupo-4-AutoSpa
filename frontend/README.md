@@ -1,6 +1,6 @@
 # AutoSpa — Frontend
 
-Interfaz inicial de AutoSpa construida con React, JavaScript y Vite. Presenta el menú de órdenes activas, historial, servicios y precios, y resumen operativo. La conexión con el backend todavía no forma parte de esta pantalla.
+Interfaz inicial de AutoSpa construida con React, JavaScript y Vite. Presenta el menú de órdenes activas, historial, servicios y precios, y permite comprobar la conexión con `GET /api/health`.
 
 ## Requisitos
 
@@ -31,6 +31,8 @@ npm run preview  # Sirve la compilación local en el puerto 3000
 ```
 
 El servidor de desarrollo usa el puerto `3000` y falla si ya está ocupado, para que la dirección documentada no cambie silenciosamente.
+
+Para indicar la dirección base del backend, configura `VITE_API_URL` en un archivo `.env.local` dentro de `frontend/` (por ejemplo, `VITE_API_URL=http://localhost:8080`). Si se omite, la solicitud se realiza al mismo origen del frontend.
 
 ## Estructura principal
 
