@@ -25,7 +25,7 @@ function App() {
       const apiUrl = import.meta.env.VITE_API_URL || '';
       const response = await fetch(`${apiUrl}/api/health`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      setConnectionStatus('Conexión con el backend establecida.');
+      setConnectionStatus('La conexion esta pendiente.');
     } catch {
       setConnectionStatus('No se pudo conectar con el backend. Verifica que esté disponible.');
     } finally {
