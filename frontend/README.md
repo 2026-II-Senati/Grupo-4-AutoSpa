@@ -25,12 +25,12 @@ npm ci
 ## Comandos
 
 ```bash
-npm run dev      # Inicia Vite en http://localhost:5173
+npm run dev      # Inicia Vite en http://localhost:3000
 npm run build    # Genera la compilación de producción en dist/
-npm run preview  # Sirve la compilación local en el puerto 5173
+npm run preview  # Sirve la compilación local en el puerto 3000
 ```
 
-El servidor de desarrollo usa el puerto `5173` y falla si ya está ocupado, para que la dirección documentada no cambie silenciosamente.
+El servidor de desarrollo usa el puerto `3000` y falla si ya está ocupado, para que la dirección documentada no cambie silenciosamente.
 
 ## Estructura principal
 
