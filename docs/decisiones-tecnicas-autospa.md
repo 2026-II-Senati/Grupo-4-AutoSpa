@@ -87,3 +87,24 @@ El contrato completo de la API sigue pendiente. Como primer ejercicio se propuso
 Una persona puede centralizar la redacción y el formato. Cada integrante debe entregarle la explicación de su avance, evidencia disponible y pendientes; el líder revisará la coherencia técnica.
 
 Antes de cerrar la entrega se necesita: plantilla o índice del docente, alcance validado, reglas vigentes, enlace a Figma, enlaces al repositorio y Jira, responsables asignados y evidencias de lo realmente ejecutado. En cada sección se distinguirá **realizado**, **planificado** y **pendiente**. Si una sección exige un diseño de datos definitivo, su ausencia deberá resolverse o declararse; este documento no lo sustituye.
+
+## Versiones iniciales
+
+Base acordada para el proyecto. Son las versiones de partida; todavía no se ha comprobado la instalación completa del frontend ni del backend.
+
+| Herramienta | Versión |
+| --- | --- |
+| Node.js | 24.22.1 |
+| npm | 11.19.1 |
+| Express | 5.3.0 |
+| React y React DOM | 19.3.1 |
+| Vite | 8.3.4 |
+
+### package.json y package-lock.json
+
+Cada aplicación (`frontend/` y `backend/`) tendrá su propio `package.json` y `package-lock.json`. Los dos deben guardarse en Git:
+
+- `package.json` lista las dependencias de la aplicación.
+- `package-lock.json` fija las versiones exactas, para que todos instalen lo mismo con `npm install`.
+
+La carpeta `node_modules/` no se sube a Git; cada integrante la genera en su máquina con `npm install`.
