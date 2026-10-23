@@ -45,7 +45,7 @@ El proyecto se organizará en los siguientes directorios, que se incorporarán c
 ## Documentación
 
 - [Reglas del negocio](docs/reglas-negocio.md)
-- [Decisiones técnicas](docs/decisiones-tecnicas.md)
+- [Decisiones técnicas](docs/decisiones-tecnicas-autospa.md)
 
 ## Estado del proyecto
 
