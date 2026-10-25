@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { OrdersPage } from './orders/OrdersPage.jsx';
 
 const menuItems = [
   { id: 'orders', label: 'Órdenes activas', icon: '▤' },
@@ -14,6 +15,7 @@ function AutoSpaMark() {
 }
 
 function App() {
+  const [activePage, setActivePage] = useState('orders');
   const [connectionStatus, setConnectionStatus] = useState('');
   const [checkingConnection, setCheckingConnection] = useState(false);
 
@@ -43,17 +45,12 @@ function App() {
 
         <div className="nav-caption">MENÚ PRINCIPAL</div>
         <nav className="menu-list" aria-label="Secciones de AutoSpa">
-          {menuItems.map((item, index) => (
-            <a
-              className={`menu-item${index === 0 ? ' is-active' : ''}`}
-              href={`#${item.id}`}
-              aria-current={index === 0 ? 'page' : undefined}
-              key={item.id}
-            >
+          {menuItems.map((item) => (
+            <button type="button" className={`menu-item${activePage === item.id ? ' is-active' : ''}`} onClick={() => setActivePage(item.id)} aria-current={activePage === item.id ? 'page' : undefined} key={item.id}>
               <span className="menu-icon" aria-hidden="true">{item.icon}</span>
               <span>{item.label}</span>
-              {index === 0 && <span className="active-dot" aria-hidden="true" />}
-            </a>
+              {activePage === item.id && <span className="active-dot" aria-hidden="true" />}
+            </button>
           ))}
         </nav>
 
@@ -65,7 +62,7 @@ function App() {
           <span className="environment"><span className="environment-dot" /> Entorno local</span>
         </header>
 
-        <section className="welcome-hero" aria-labelledby="page-title">
+        {activePage === 'orders' ? <OrdersPage /> : <section className="welcome-hero" aria-labelledby="page-title">
           <div className="hero-content">
             <div className="eyebrow"><span className="eyebrow-line" /> BIENVENIDO A AUTOSPA</div>
             <h1 id="page-title">Bienvenido a<br /><span>AutoSpa</span></h1>
@@ -81,7 +78,7 @@ function App() {
               {connectionStatus && <p role="status" aria-live="polite">{connectionStatus}</p>}
             </div>
           </div>
-        </section>
+        </section>}
 
         <footer className="page-footer">
           <span>Una experiencia de cuidado para cada vehículo.</span>
