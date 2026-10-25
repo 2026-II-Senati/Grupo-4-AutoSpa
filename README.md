@@ -1,5 +1,7 @@
 # Grupo-4-AutoSpa
+
 Proyecto final del curso FULLSTACK DEVELOPER SOFTWARE
+
 # AutoSpa
 
 Aplicación web para gestionar la atención de vehículos en un autolavado. Su propósito es facilitar el registro de órdenes, el seguimiento del servicio y la consulta de las atenciones realizadas.
@@ -16,13 +18,13 @@ Aplicación web para gestionar la atención de vehículos en un autolavado. Su p
 
 ## Tecnologías seleccionadas
 
-| Parte del proyecto | Tecnologías |
-|---|---|
-| Frontend | React, Vite y JavaScript |
-| Backend | Node.js y Express |
-| Base de datos | MySQL |
-| Acceso a datos | Sequelize |
-| Ejecución en contenedores | Docker y Docker Compose |
+| Parte del proyecto        | Tecnologías              |
+| ------------------------- | ------------------------ |
+| Frontend                  | React, Vite y JavaScript |
+| Backend                   | Node.js y Express        |
+| Base de datos             | MySQL                    |
+| Acceso a datos            | Sequelize                |
+| Ejecución en contenedores | Docker y Docker Compose  |
 
 ## Arquitectura
 
@@ -46,6 +48,7 @@ El proyecto se organizará en los siguientes directorios, que se incorporarán c
 
 - [Reglas del negocio](docs/reglas-negocio.md)
 - [Decisiones técnicas](docs/decisiones-tecnicas-autospa.md)
+- [Instalacion](docs/instalacion.md)
 
 ## Estado del proyecto
 
