@@ -20,6 +20,18 @@ export function OrderForm({ services, loadingServices, servicesError, onCreated 
     event.preventDefault();
     if (submitting || unavailable) return;
     setFeedback(null);
+    if (!values.customerName.trim() || !values.phone.trim() || !values.licensePlate.trim() || !values.serviceId) {
+      setFeedback({ type: 'error', message: 'Completa todos los campos obligatorios.' });
+      return;
+    }
+    if (!/^[0-9+()\s-]{7,20}$/.test(values.phone.trim())) {
+      setFeedback({ type: 'error', message: 'Ingresa un teléfono válido.' });
+      return;
+    }
+    if (!/^[a-z0-9 -]{5,12}$/i.test(values.licensePlate.trim())) {
+      setFeedback({ type: 'error', message: 'Ingresa una placa válida.' });
+      return;
+    }
     setSubmitting(true);
     try {
       await createOrder({
@@ -50,7 +62,7 @@ export function OrderForm({ services, loadingServices, servicesError, onCreated 
       <form className="order-form" onSubmit={submit}>
         <label>Nombre del cliente <span>*</span><input name="customerName" value={values.customerName} onChange={update} required maxLength={100} autoComplete="name" placeholder="Nombre y apellido" /></label>
         <label>Teléfono <span>*</span><input name="phone" value={values.phone} onChange={update} required type="tel" maxLength={20} autoComplete="tel" placeholder="Ej. 987 654 321" /></label>
-        <label>Placa del vehículo <span>*</span><input name="licensePlate" value={values.licensePlate} onChange={update} required maxLength={12} autoCapitalize="characters" placeholder="Ej. ABC-123" /></label>
+        <label>Placa del vehículo <span>*</span><input name="licensePlate" value={values.licensePlate} onChange={update} required minLength={5} maxLength={12} autoCapitalize="characters" placeholder="Ej. ABC-123" /></label>
         <label>Servicio <span>*</span><select name="serviceId" value={values.serviceId} onChange={update} required disabled={loadingServices || unavailable || servicesError}>
           <option value="">Selecciona un servicio</option>
           {services.map((service) => <option value={service.id} key={service.id}>{service.name}</option>)}
