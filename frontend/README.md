@@ -32,7 +32,18 @@ npm run preview  # Sirve la compilación local en el puerto 3000
 
 El servidor de desarrollo usa el puerto `3000` y falla si ya está ocupado, para que la dirección documentada no cambie silenciosamente.
 
-Para indicar la dirección base del backend, configura `VITE_API_URL` en un archivo `.env.local` dentro de `frontend/` (por ejemplo, `VITE_API_URL=http://localhost:8080`). Si se omite, la solicitud se realiza al mismo origen del frontend.
+## Comprobación de conexión con el backend
+
+Para comprobar la conexión deben ejecutarse el backend y el frontend al mismo tiempo.
+
+### Iniciar el backend
+
+Desde la raíz del repositorio, abre una terminal:
+
+```bash
+cd backend
+npm ci
+npm start
 
 ## Estructura principal
 
