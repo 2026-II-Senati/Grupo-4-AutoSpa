@@ -200,5 +200,4 @@ Deshabilitar el botón durante el envío evita dobles clics; la garantía ante c
 | Orden delivered/cancelled preparada en BD de prueba            | No aparece en GET; permite nueva visita de esa placa         |
 | Backend apagado / BD inaccesible                               | Error de red en React / HTTP 503 si Express sigue disponible |
 
-No se han ejecutado estas comprobaciones: describen los criterios para los tickets siguientes.
-La aprobación de Castillo, las confirmaciones de consumidores y la integración en develop siguen pendientes. Registrar esa evidencia en el PR; no cerrar el ticket solo por disponer de estos archivos.
+

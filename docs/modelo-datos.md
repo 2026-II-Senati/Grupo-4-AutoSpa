@@ -216,11 +216,3 @@ La implementación debe demostrar: creación waiting; rechazo de servicio inacti
 
 En las etapas posteriores se comprobará: correo duplicado rechazado tras normalización; usuario inactivo impedido de operar; órdenes anteriores con creador NULL sin atribuciones inventadas; cancelación solo desde waiting y con motivo; transición y evento confirmados o revertidos juntos; cambios concurrentes sin saltos ni eventos duplicados; conservación del historial al desactivar cuentas y servicios.
 
-Antes de integrar:
-- Espinoza confirma que puede implementar tipos, restricciones y transacción con Sequelize/MySQL.
-- Vargas confirma campos, filtros y orden de las consultas.
-- Castillo confirma que solicitud, respuestas y errores cubren formulario y listado, y revisa el PR.
-- Núñez confirma que puede preparar las comprobaciones.
-- Cancho resuelve observaciones y registra enlaces a PR, comentarios y commit integrado.
-
-Estas confirmaciones están pendientes; escribir el documento no acredita que ya se hayan producido.
