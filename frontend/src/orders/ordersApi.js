@@ -1,9 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || '';
-
 async function request(path, options = {}) {
   let response;
   try {
-    response = await fetch(`${API_URL}/api${path}`, {
+    response = await fetch(`/api${path}`, {
       ...options,
       headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers },
     });
@@ -13,22 +11,20 @@ async function request(path, options = {}) {
 
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = body.message || body.error || (response.status === 409
+    const message = body.error?.message || body.message || (response.status === 409
       ? 'La placa ya tiene una orden activa.'
       : `No se pudo completar la solicitud (HTTP ${response.status}).`);
     throw new Error(message);
   }
-  return body;
+  return body.data;
 }
 
-export async function getServices() {
-  const result = await request('/services');
-  return Array.isArray(result) ? result : result.services || [];
+export function getServices() {
+  return request('/services');
 }
 
-export async function getOrders() {
-  const result = await request('/orders');
-  return Array.isArray(result) ? result : result.orders || [];
+export function getOrders() {
+  return request('/orders');
 }
 
 export function createOrder(order) {

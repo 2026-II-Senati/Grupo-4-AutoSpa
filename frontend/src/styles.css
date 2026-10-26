@@ -111,7 +111,6 @@ h1 span { color: var(--teal); }
 .error-state { flex-direction: column; color: #a64b40; }
 .text-button { border: 0; background: none; color: var(--teal-dark); font-size: 11px; font-weight: 700; text-decoration: underline; cursor: pointer; }
 @media (max-width: 1050px) { .orders-layout { grid-template-columns: 1fr; } }
-
 @media (max-width: 1050px) { .sidebar { width: 220px; } .main-content { margin-left: 220px; padding-right: 4%; padding-left: 4%; } }
 @media (max-width: 700px) {
   .sidebar { position: static; width: auto; padding: 16px 18px 12px; border-right: 0; border-bottom: 1px solid #e8edef; }

@@ -24,12 +24,23 @@ function App() {
     setConnectionStatus('Comprobando conexión…');
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(`${apiUrl}/api/health`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      setConnectionStatus('La conexion esta pendiente.');
+      const response = await fetch('/api/health');
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (typeof data.message !== 'string') {
+        throw new Error('Respuesta inválida del backend');
+      }
+
+      setConnectionStatus(data.message);
     } catch {
-      setConnectionStatus('No se pudo conectar con el backend. Verifica que esté disponible.');
+      setConnectionStatus(
+        'No se pudo conectar con el backend. Verifica que esté disponible.',
+      );
     } finally {
       setCheckingConnection(false);
     }

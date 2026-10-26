@@ -1,6 +1,6 @@
 # AutoSpa — Frontend
 
-Interfaz inicial de AutoSpa construida con React, JavaScript y Vite. Presenta el menú de órdenes activas, historial, servicios y precios, y permite comprobar la conexión con `GET /api/health`.
+Interfaz de AutoSpa construida con React, JavaScript y Vite. Incluye el registro y listado de órdenes, además de la comprobación de conexión con `GET /api/health`.
 
 ## Requisitos
 
@@ -32,11 +32,37 @@ npm run preview  # Sirve la compilación local en el puerto 3000
 
 El servidor de desarrollo usa el puerto `3000` y falla si ya está ocupado, para que la dirección documentada no cambie silenciosamente.
 
-Para indicar la dirección base del backend, configura `VITE_API_URL` en un archivo `.env.local` dentro de `frontend/` (por ejemplo, `VITE_API_URL=http://localhost:8080`). Si se omite, la solicitud se realiza al mismo origen del frontend.
+## Comprobación de conexión con el backend
+
+Para comprobar la conexión deben ejecutarse el backend y el frontend al mismo tiempo.
+
+### Iniciar el backend
+
+Desde la raíz del repositorio, abre una terminal:
+
+```bash
+cd backend
+npm ci
+npm start
+```
+
+El backend escucha en `http://localhost:3001`. Vite reenvía las solicitudes `/api/...` a ese servidor mediante el proxy de `vite.config.js`; en el uso local no hace falta configurar `VITE_API_URL`.
+
+### Iniciar el frontend
+
+En otra terminal, desde `frontend/`:
+
+```bash
+npm ci
+npm run dev
+```
+
+Abre `http://localhost:3000`. El servidor backend actualmente documentado solo implementa `GET /api/health`; las rutas de servicios y órdenes están descritas en `../docs/api.md` y requieren implementación en el backend.
 
 ## Estructura principal
 
-- `src/App.jsx`: navegación y pantalla de bienvenida.
+- `src/App.jsx`: navegación y selección de sección.
+- `src/orders/`: formulario, listado y comunicación HTTP de órdenes.
 - `src/styles.css`: presentación visual y adaptación a pantallas pequeñas.
 - `src/main.jsx`: punto de entrada de React.
 

@@ -1,19 +1,31 @@
-# Node.js
+# Dependencias
 node_modules/
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Build de Vite y otros
+dist/
+dist-ssr/
+build/
+coverage/
+
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
-# Build output
-dist/
+# Editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
 
-# Local environment files
-.env
-.env.*
-!.env.example
-
-# Editor and operating system files
+# Sistema operativo
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/

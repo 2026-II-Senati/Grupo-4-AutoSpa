@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createOrder, getApiErrorMessage } from './ordersApi.js';
 
-const initialValues = { customerName: '', phone: '', licensePlate: '', serviceId: '' };
+const initialValues = { customerName: '', customerPhone: '', plate: '', serviceId: '' };
 const money = (amount) => Number(amount || 0).toLocaleString('es-PE', { style: 'currency', currency: 'PEN' });
 
 export function OrderForm({ services, loadingServices, servicesError, onCreated }) {
@@ -20,25 +20,30 @@ export function OrderForm({ services, loadingServices, servicesError, onCreated 
     event.preventDefault();
     if (submitting || unavailable) return;
     setFeedback(null);
-    if (!values.customerName.trim() || !values.phone.trim() || !values.licensePlate.trim() || !values.serviceId) {
+    if (!values.customerName.trim() || !values.plate.trim() || !values.serviceId) {
       setFeedback({ type: 'error', message: 'Completa todos los campos obligatorios.' });
       return;
     }
-    if (!/^[0-9+()\s-]{7,20}$/.test(values.phone.trim())) {
-      setFeedback({ type: 'error', message: 'Ingresa un teléfono válido.' });
+    if (values.customerName.trim().length > 100) {
+      setFeedback({ type: 'error', message: 'El nombre del cliente admite hasta 100 caracteres.' });
       return;
     }
-    if (!/^[a-z0-9 -]{5,12}$/i.test(values.licensePlate.trim())) {
-      setFeedback({ type: 'error', message: 'Ingresa una placa válida.' });
+    if (!/^[a-z0-9]{3}-?[0-9]{3}$/i.test(values.plate.trim())) {
+      setFeedback({ type: 'error', message: 'Ingresa una placa válida de seis caracteres.' });
+      return;
+    }
+    const phone = values.customerPhone.trim();
+    if (phone && !/^\+?[0-9]{7,15}$/.test(phone)) {
+      setFeedback({ type: 'error', message: 'Ingresa un teléfono de 7 a 15 dígitos, con + inicial opcional.' });
       return;
     }
     setSubmitting(true);
     try {
       await createOrder({
         customerName: values.customerName.trim(),
-        phone: values.phone.trim(),
-        licensePlate: values.licensePlate.trim().toUpperCase(),
-        serviceId: values.serviceId,
+        customerPhone: phone || null,
+        plate: values.plate.trim().toUpperCase().replace('-', ''),
+        serviceId: Number(values.serviceId),
       });
       setValues(initialValues);
       setFeedback({ type: 'success', message: 'Orden registrada correctamente.' });
@@ -61,8 +66,8 @@ export function OrderForm({ services, loadingServices, servicesError, onCreated 
       {unavailable && <p className="inline-info" role="status">No hay servicios disponibles. No es posible registrar una orden.</p>}
       <form className="order-form" onSubmit={submit}>
         <label>Nombre del cliente <span>*</span><input name="customerName" value={values.customerName} onChange={update} required maxLength={100} autoComplete="name" placeholder="Nombre y apellido" /></label>
-        <label>Teléfono <span>*</span><input name="phone" value={values.phone} onChange={update} required type="tel" maxLength={20} autoComplete="tel" placeholder="Ej. 987 654 321" /></label>
-        <label>Placa del vehículo <span>*</span><input name="licensePlate" value={values.licensePlate} onChange={update} required minLength={5} maxLength={12} autoCapitalize="characters" placeholder="Ej. ABC-123" /></label>
+        <label>Teléfono <small>(opcional)</small><input name="customerPhone" value={values.customerPhone} onChange={update} type="tel" maxLength={16} autoComplete="tel" placeholder="Ej. +51987654321" /></label>
+        <label>Placa del vehículo <span>*</span><input name="plate" value={values.plate} onChange={update} required minLength={6} maxLength={7} autoCapitalize="characters" placeholder="Ej. ABC-123" /></label>
         <label>Servicio <span>*</span><select name="serviceId" value={values.serviceId} onChange={update} required disabled={loadingServices || unavailable || servicesError}>
           <option value="">Selecciona un servicio</option>
           {services.map((service) => <option value={service.id} key={service.id}>{service.name}</option>)}
