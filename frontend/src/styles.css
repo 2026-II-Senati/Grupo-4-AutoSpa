@@ -66,6 +66,8 @@ h1 span { color: var(--teal); }
 .orders-page-heading .eyebrow { justify-content: flex-start; }
 .orders-page-heading h1 { margin: 12px 0 7px; font-size: clamp(32px, 3.2vw, 43px); }
 .orders-page-heading p { margin: 0; color: #71858a; font-size: 13px; }
+.prototype-notice { margin: -11px 0 20px; padding: 10px 13px; border: 1px solid #dcece8; border-radius: 8px; background: #f0f8f6; color: #52736f; font-size: 11px; line-height: 1.5; }
+.prototype-notice strong { color: var(--teal-dark); }
 .orders-layout { display: grid; grid-template-columns: minmax(290px, .88fr) minmax(0, 1.35fr); align-items: start; gap: 20px; }
 .order-card, .orders-list-card { min-width: 0; padding: 23px; border: 1px solid #e7edef; border-radius: 13px; background: #fff; box-shadow: 0 8px 24px #263a3f08; }
 .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 19px; }

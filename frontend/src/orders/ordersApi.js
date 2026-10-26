@@ -1,3 +1,8 @@
+import { createDemoOrder, getDemoOrders, getDemoServices } from './mockOrdersApi.js';
+
+const useMockApi = import.meta.env.VITE_USE_MOCK_API === 'true'
+  || (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_API !== 'false');
+
 async function request(path, options = {}) {
   let response;
   try {
@@ -20,15 +25,21 @@ async function request(path, options = {}) {
 }
 
 export function getServices() {
-  return request('/services');
+  return useMockApi ? getDemoServices() : request('/services');
 }
 
 export function getOrders() {
-  return request('/orders');
+  return useMockApi ? getDemoOrders() : request('/orders');
 }
 
 export function createOrder(order) {
-  return request('/orders', { method: 'POST', body: JSON.stringify(order) });
+  return useMockApi
+    ? createDemoOrder(order)
+    : request('/orders', { method: 'POST', body: JSON.stringify(order) });
+}
+
+export function isUsingMockApi() {
+  return useMockApi;
 }
 
 export function getApiErrorMessage(error) {

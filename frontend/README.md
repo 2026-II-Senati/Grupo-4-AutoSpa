@@ -57,7 +57,9 @@ npm ci
 npm run dev
 ```
 
-Abre `http://localhost:3000`. El servidor backend actualmente documentado solo implementa `GET /api/health`; las rutas de servicios y órdenes están descritas en `../docs/api.md` y requieren implementación en el backend.
+Abre `http://localhost:3000`. En modo desarrollo, la pantalla usa por defecto servicios de demostración y guarda las órdenes en `localStorage` para que sigan apareciendo después de recargar. Estos datos no se envían al backend ni se guardan en MySQL.
+
+Cuando estén disponibles `GET /api/services`, `GET /api/orders` y `POST /api/orders`, configura `VITE_USE_MOCK_API=false` en `frontend/.env.local` y reinicia Vite. El proxy de `vite.config.js` enviará las solicitudes al backend. El formato de esas rutas está descrito en `../docs/api.md`.
 
 ## Estructura principal
 
