@@ -9,14 +9,22 @@ export const DEMO_SERVICES = [
 ];
 
 export async function up({ context: sequelize }) {
-  const now = new Date();
-  for (const service of DEMO_SERVICES) {
-    await sequelize.query(
-      `INSERT INTO services (name, description, price, is_active, created_at, updated_at)
-       VALUES (:name, :description, :price, :isActive, :now, :now)`,
-      { replacements: { ...service, now } },
-    );
-  }
+  await sequelize.transaction(async (transaction) => {
+    const now = new Date();
+
+    for (const service of DEMO_SERVICES) {
+      await sequelize.query(
+        `INSERT INTO services
+          (name, description, price, is_active, created_at, updated_at)
+         VALUES
+          (:name, :description, :price, :isActive, :now, :now)`,
+        {
+          replacements: { ...service, now },
+          transaction,
+        },
+      );
+    }
+  });
 }
 
 export async function down({ context: sequelize }) {

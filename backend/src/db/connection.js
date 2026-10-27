@@ -33,20 +33,29 @@ function isSupportedVersion(versionText) {
   return true;
 }
 
-// Comprueba la conexión y devuelve la versión de MySQL. Lanza un Error con mensaje seguro si falla.
 export async function verifyDatabaseConnection() {
+  let version;
+
   try {
     await sequelize.authenticate();
-    const [rows] = await sequelize.query('SELECT VERSION() AS version');
-    const version = rows[0].version;
-    if (!isSupportedVersion(version)) {
-      console.warn(
-        `Advertencia: MySQL ${version} detectado. El proyecto requiere MySQL 8.0.16 o posterior ` +
-          'para aplicar las restricciones CHECK.',
-      );
-    }
-    return version;
+
+    const [rows] = await sequelize.query(
+      'SELECT VERSION() AS version',
+    );
+
+    version = rows[0].version;
   } catch (error) {
-    throw new Error(describeConnectionError(error), { cause: undefined });
+    throw new Error(describeConnectionError(error));
   }
+
+  // Fuera del catch para conservar el mensaje de incompatibilidad.
+  if (!isSupportedVersion(version)) {
+    throw new Error(
+      `Motor o versión no compatible: ${version}. ` +
+      'AutoSpa requiere MySQL 8.0.16 o posterior. ' +
+      'MariaDB no está admitido en este proyecto.',
+    );
+  }
+
+  return version;
 }

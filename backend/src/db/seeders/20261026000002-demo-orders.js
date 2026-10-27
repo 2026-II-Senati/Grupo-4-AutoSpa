@@ -12,36 +12,80 @@ const DEMO_ORDERS = [
 const DEMO_PLATES = [...new Set(DEMO_ORDERS.map((order) => order.plate))];
 
 export async function up({ context: sequelize }) {
-  const [services] = await sequelize.query('SELECT id, name, price FROM services WHERE name IN (:names)', {
-    replacements: { names: [...new Set(DEMO_ORDERS.map((order) => order.service))] },
-  });
-  const servicesByName = new Map(services.map((service) => [service.name, service]));
+  await sequelize.transaction(async (transaction) => {
+    const names = [
+      ...new Set(DEMO_ORDERS.map((order) => order.service)),
+    ];
 
-  for (const order of DEMO_ORDERS) {
-    const service = servicesByName.get(order.service);
-    if (!service) {
-      throw new Error(`No existe el servicio de demostración "${order.service}". Ejecuta primero el seeder de servicios.`);
-    }
-    const createdAt = new Date(Date.now() - order.hoursAgo * 60 * 60 * 1000);
-    await sequelize.query(
-      `INSERT INTO orders
-         (plate, customer_name, customer_phone, service_id, service_name, service_price, status, created_at, updated_at)
-       VALUES
-         (:plate, :customerName, :customerPhone, :serviceId, :serviceName, :servicePrice, :status, :createdAt, :createdAt)`,
+    const [services] = await sequelize.query(
+      `SELECT id, name, price
+       FROM services
+       WHERE name IN (:names)`,
       {
-        replacements: {
-          plate: order.plate,
-          customerName: order.customerName,
-          customerPhone: order.customerPhone,
-          serviceId: service.id,
-          serviceName: service.name,
-          servicePrice: service.price,
-          status: order.status,
-          createdAt,
-        },
+        replacements: { names },
+        transaction,
       },
     );
-  }
+
+    const servicesByName = new Map(
+      services.map((service) => [service.name, service]),
+    );
+
+    for (const order of DEMO_ORDERS) {
+      const service = servicesByName.get(order.service);
+
+      if (!service) {
+        throw new Error(
+          `No existe el servicio de demostración "${order.service}". ` +
+          'Ejecuta primero el seeder de servicios.',
+        );
+      }
+
+      const createdAt = new Date(
+        Date.now() - order.hoursAgo * 60 * 60 * 1000,
+      );
+
+      await sequelize.query(
+        `INSERT INTO orders
+          (
+            plate,
+            customer_name,
+            customer_phone,
+            service_id,
+            service_name,
+            service_price,
+            status,
+            created_at,
+            updated_at
+          )
+         VALUES
+          (
+            :plate,
+            :customerName,
+            :customerPhone,
+            :serviceId,
+            :serviceName,
+            :servicePrice,
+            :status,
+            :createdAt,
+            :createdAt
+          )`,
+        {
+          replacements: {
+            plate: order.plate,
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            serviceId: service.id,
+            serviceName: service.name,
+            servicePrice: service.price,
+            status: order.status,
+            createdAt,
+          },
+          transaction,
+        },
+      );
+    }
+  });
 }
 
 export async function down({ context: sequelize }) {
