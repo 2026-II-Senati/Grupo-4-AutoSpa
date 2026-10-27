@@ -1,63 +1,113 @@
 export function validateOrder(body) {
   const errors = [];
 
-  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
     return {
       data: null,
-      errors: [{ field: 'body', message: 'El cuerpo de la petición debe ser un objeto JSON válido' }]
+      errors: [
+        {
+          field: 'body',
+          message: 'Envía un objeto JSON con los datos de la orden.',
+        },
+      ],
     };
   }
 
-  const allowedFields = ['plate', 'customerName', 'customerPhone', 'serviceId'];
-  const receivedFields = Object.keys(body);
+  const allowedFields = [
+    'plate',
+    'customerName',
+    'customerPhone',
+    'serviceId',
+  ];
 
-  for (const field of receivedFields) {
+  for (const field of Object.keys(body)) {
     if (!allowedFields.includes(field)) {
-      errors.push({ field, message: `El campo '${field}' no está permitido` });
+      errors.push({
+        field,
+        message: 'Este campo no está permitido.',
+      });
     }
   }
 
-  let normalizedPlate = null;
-  let normalizedName = null;
-  let normalizedPhone = null;
-  let normalizedServiceId = null;
+  let plate = null;
+  let customerName = null;
+  let customerPhone = null;
 
-  if (body.plate === undefined || body.plate === null || typeof body.plate !== 'string' || body.plate.trim() === '') {
-    errors.push({ field: 'plate', message: 'La placa es obligatoria y debe ser un texto no vacío' });
-  } else {
-    normalizedPlate = body.plate.trim().toUpperCase();
+  if (typeof body.plate === 'string') {
+    const value = body.plate.trim().toUpperCase();
+
+    if (/^[A-Z0-9]{3}-?[0-9]{3}$/.test(value)) {
+      plate = value.replace('-', '');
+    }
   }
 
-  if (body.customerName === undefined || body.customerName === null || typeof body.customerName !== 'string') {
-    errors.push({ field: 'customerName', message: 'El nombre del cliente es obligatorio' });
+  if (plate === null) {
+    errors.push({
+      field: 'plate',
+      message: 'Ingresa una placa válida de seis caracteres.',
+    });
+  }
+
+  if (
+    typeof body.customerName !== 'string' ||
+    body.customerName.trim() === ''
+  ) {
+    errors.push({
+      field: 'customerName',
+      message: 'Ingresa el nombre del cliente.',
+    });
   } else {
-    const trimmedName = body.customerName.trim();
-    if (trimmedName.length < 1 || trimmedName.length > 100) {
-      errors.push({ field: 'customerName', message: 'El nombre del cliente debe tener entre 1 y 100 caracteres' });
+    const value = body.customerName.trim();
+
+    if ([...value].length > 100) {
+      errors.push({
+        field: 'customerName',
+        message: 'El nombre del cliente admite hasta 100 caracteres.',
+      });
     } else {
-      normalizedName = trimmedName;
+      customerName = value;
     }
   }
 
-  if (body.customerPhone === undefined || body.customerPhone === null) {
-    normalizedPhone = null;
-  } else if (typeof body.customerPhone === 'string') {
-    const trimmedPhone = body.customerPhone.trim();
-    normalizedPhone = trimmedPhone === '' ? null : trimmedPhone;
-  } else {
-    errors.push({ field: 'customerPhone', message: 'El teléfono del cliente debe ser un texto' });
-  }
-
-  if (body.serviceId === undefined || body.serviceId === null) {
-    errors.push({ field: 'serviceId', message: 'El ID del servicio es obligatorio' });
-  } else {
-    const serviceId = Number(body.serviceId);
-    if (!Number.isInteger(serviceId) || serviceId <= 0 || serviceId > 4294967295) {
-      errors.push({ field: 'serviceId', message: 'El ID del servicio debe ser un número entero positivo válido' });
+  if (body.customerPhone !== undefined && body.customerPhone !== null) {
+    if (typeof body.customerPhone !== 'string') {
+      errors.push({
+        field: 'customerPhone',
+        message:
+          'Ingresa un teléfono de 7 a 15 dígitos, con + inicial opcional.',
+      });
     } else {
-      normalizedServiceId = serviceId;
+      const value = body.customerPhone.trim();
+
+      if (value !== '') {
+        if (/^\+?[0-9]{7,15}$/.test(value)) {
+          customerPhone = value;
+        } else {
+          errors.push({
+            field: 'customerPhone',
+            message:
+              'Ingresa un teléfono de 7 a 15 dígitos, con + inicial opcional.',
+          });
+        }
+      }
     }
   }
+
+  if (
+    typeof body.serviceId !== 'number' ||
+    !Number.isInteger(body.serviceId) ||
+    body.serviceId < 1 ||
+    body.serviceId > 4294967295
+  ) {
+    errors.push({
+      field: 'serviceId',
+      message: 'Selecciona un servicio válido.',
+    });
+  }
+
+  errors.sort((a, b) =>
+    a.field < b.field ? -1 : a.field > b.field ? 1 : 0,
+  );
 
   if (errors.length > 0) {
     return { data: null, errors };
@@ -65,11 +115,11 @@ export function validateOrder(body) {
 
   return {
     data: {
-      plate: normalizedPlate,
-      customerName: normalizedName,
-      customerPhone: normalizedPhone,
-      serviceId: normalizedServiceId
+      plate,
+      customerName,
+      customerPhone,
+      serviceId: body.serviceId,
     },
-    errors: []
+    errors: [],
   };
 }
