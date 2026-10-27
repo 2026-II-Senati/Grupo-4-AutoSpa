@@ -1,4 +1,5 @@
 import { validateOrder } from '../validators/orders.validator.js';
+import { registerOrder } from '../services/orders.service.js';
 
 export async function createOrder(req, res, next) {
   try {
@@ -14,14 +15,10 @@ export async function createOrder(req, res, next) {
       });
     }
 
+    const order = await registerOrder(data);
 
-    return res.status(503).json({
-      error: {
-        code: 'TEMPORARILY_UNAVAILABLE',
-        message:
-          'El servicio no está disponible temporalmente. Inténtalo nuevamente.',
-        details: [],
-      },
+    return res.status(201).json({
+      data: order,
     });
   } catch (error) {
     next(error);

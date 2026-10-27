@@ -1,18 +1,17 @@
 import express from 'express';
-<<<<<<< HEAD
-import ordersRouter from './routes/orders.routes.js';
-=======
+
 import { config } from './config/env.js';
 import { verifyDatabaseConnection } from './db/connection.js';
->>>>>>> origin/develop
+import ordersRouter from './routes/orders.routes.js';
+import { isTemporaryDatabaseError } from './services/orders.service.js';
 
 const app = express();
 const port = config.port;
 
 app.use('/api/orders', (req, res, next) => {
   if (req.method === 'POST') {
-    const contentType = req.get('Content-Type');
-    const mediaType = contentType
+    const mediaType = req
+      .get('Content-Type')
       ?.split(';')[0]
       .trim()
       .toLowerCase();
@@ -31,7 +30,6 @@ app.use('/api/orders', (req, res, next) => {
   next();
 });
 
-
 app.use(express.json({ strict: false }));
 
 app.get('/api/health', (_req, res) => {
@@ -40,7 +38,6 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-<<<<<<< HEAD
 app.use('/api/orders', ordersRouter);
 
 app.use((err, req, res, next) => {
@@ -68,7 +65,32 @@ app.use((err, req, res, next) => {
     });
   }
 
-  console.error('Error inesperado al procesar la solicitud:', err);
+  if (
+    (err.httpStatus === 422 && err.apiCode === 'SERVICE_UNAVAILABLE') ||
+    (err.httpStatus === 409 && err.apiCode === 'ACTIVE_ORDER_EXISTS')
+  ) {
+    return res.status(err.httpStatus).json({
+      error: {
+        code: err.apiCode,
+        message: err.message,
+        details: err.details,
+      },
+    });
+  }
+
+  if (isTemporaryDatabaseError(err)) {
+    return res.status(503).json({
+      error: {
+        code: 'TEMPORARILY_UNAVAILABLE',
+        message:
+          'El servicio no está disponible temporalmente. Inténtalo nuevamente.',
+        details: [],
+      },
+    });
+  }
+
+  // Registrar solo el tipo de error, sin SQL ni datos del cliente.
+  console.error('Error inesperado:', err.name);
 
   return res.status(500).json({
     error: {
@@ -77,19 +99,18 @@ app.use((err, req, res, next) => {
       details: [],
     },
   });
-=======
+});
+
 try {
   const version = await verifyDatabaseConnection();
-  console.log(`Conectado a MySQL ${version} (base "${config.db.name}").`);
+
+  console.log(
+    `Conectado a MySQL ${version} (base "${config.db.name}").`,
+  );
 } catch (error) {
   console.error(error.message);
   process.exit(1);
 }
-
-app.listen(port, () => {
-  console.log(`Backend de AutoSpa disponible en http://localhost:${port}`);
->>>>>>> origin/develop
-});
 
 app.listen(port, () => {
   console.log(
