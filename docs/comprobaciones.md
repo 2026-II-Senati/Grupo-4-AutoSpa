@@ -133,13 +133,19 @@ Antes de comenzar, se debe contar con lo siguiente:
 
 Los estados de esta guía se actualizarán únicamente después de ejecutar cada caso.
 
-| Caso | Comprobación | Estado inicial |
-| :--- | :--- | :--- |
-| CP-01 | Apertura del frontend | Pendiente de ejecutar |
-| CP-02 | Consulta `GET /api/health` | Pendiente de ejecutar |
-| CP-03 | Conexión con backend encendido | Pendiente de ejecutar |
-| CP-04 | Conexión con backend apagado | Pendiente de ejecutar |
-| CP-05 | Recuperación de la conexión | Pendiente de ejecutar |
+Caso	Comprobación	                                                        Estado
+CP-01	Apertura del frontend	                                        Pendiente de ejecutar
+CP-02	Consulta GET /api/health	                                    Pendiente de ejecutar
+CP-03	Conexión con backend encendido	                                Pendiente de ejecutar
+CP-04	Conexión con backend apagado	                                Pendiente de ejecutar
+CP-05	Recuperación de la conexión	                                    Pendiente de ejecutar
+CP-06	Registro de una orden válida	                                Pendiente de ejecutar
+CP-07	Persistencia de la orden después de recargar	                Pendiente de ejecutar
+CP-08	Rechazo de campos obligatorios faltantes	                    Pendiente de ejecutar
+CP-09	Rechazo de una placa duplicada en una orden activa	            Pendiente de ejecutar
+CP-10	Rechazo de servicios inactivos	                                Pendiente de ejecutar
+CP-11	Conservación de los datos del servicio en órdenes existentes	Pendiente de ejecutar
+CP-12	Mensaje cuando el backend no está disponible	                Pendiente de ejecutar
 
 Cuando corresponda, se registrarán la fecha, el resultado obtenido, las observaciones y la evidencia. Los fallos detectados durante la ejecución deberán comunicarse en los tickets de implementación correspondientes.
 
