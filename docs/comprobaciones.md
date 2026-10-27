@@ -153,3 +153,123 @@ Para completar esta tarea:
 4. Solicitar la revisión correspondiente y comprobar que el archivo queda integrado en `develop`.
 
 **Condición de cierre:** la guía está completa, revisada e integrada en `develop`. La ejecución efectiva de las comprobaciones corresponde a los tickets de implementación.
+
+### CP-06. Registro de una orden válida
+
+**Preparación:**
+- Disponer de la integración del flujo de órdenes implementada.
+- Tener el backend y el frontend configurados y en ejecución.
+- Contar con datos de prueba válidos.
+
+**Pasos:**
+1. Abrir el frontend.
+2. Completar los campos obligatorios con datos de prueba válidos.
+3. Registrar la orden.
+4. Comprobar si la orden aparece en la lista.
+
+**Resultado esperado:**
+- La orden se registra correctamente.
+- La orden aparece en la lista de órdenes.
+
+**Estado:** Pendiente de ejecutar.
+
+### CP-07. Persistencia de la orden después de recargar la página
+
+**Preparación:**
+- Haber registrado una orden válida.
+- Disponer de la persistencia de órdenes implementada.
+
+**Pasos:**
+1. Registrar una orden válida.
+2. Recargar la página del frontend.
+3. Consultar nuevamente la lista de órdenes.
+
+**Resultado esperado:**
+- La orden registrada continúa apareciendo después de recargar la página.
+
+**Estado:** Pendiente de ejecutar.
+
+### CP-08. Rechazo de campos obligatorios faltantes
+
+**Preparación:**
+- Disponer del registro de órdenes implementado.
+
+**Pasos:**
+1. Abrir el formulario de registro de órdenes.
+2. Dejar vacío un campo obligatorio.
+3. Intentar registrar la orden.
+4. Observar la respuesta de la interfaz.
+
+**Resultado esperado:**
+- La orden no se registra.
+- La interfaz informa qué dato obligatorio falta o qué debe corregirse.
+
+**Estado:** Pendiente de ejecutar.
+
+### CP-09. Rechazo de una placa duplicada en una orden activa
+
+**Preparación:**
+- Disponer de órdenes y validación de placas implementadas.
+- Contar con una orden activa de prueba asociada a una placa.
+
+**Pasos:**
+1. Registrar o localizar una orden activa de prueba.
+2. Intentar registrar otra orden activa con la misma placa.
+3. Observar la respuesta del sistema.
+
+**Resultado esperado:**
+- El sistema rechaza la segunda orden activa para la misma placa.
+
+**Estado:** Pendiente de ejecutar.
+
+### CP-10. Rechazo de servicios inactivos
+
+**Preparación:**
+- Disponer de servicios con estado activo e inactivo.
+- Contar con el flujo de órdenes implementado.
+
+**Pasos:**
+1. Comprobar si un servicio inactivo aparece entre las opciones del formulario.
+2. Enviar una solicitud directa a la API intentando registrar una orden con ese servicio.
+3. Registrar la respuesta obtenida.
+
+**Resultado esperado:**
+- El servicio inactivo no se puede seleccionar en la interfaz.
+- La API rechaza la solicitud que intenta utilizar el servicio inactivo.
+
+**Estado:** Pendiente de ejecutar.
+
+### CP-11. Conservación de los datos del servicio en órdenes existentes
+
+**Preparación:**
+- Disponer de órdenes y servicios persistidos.
+- Utilizar exclusivamente datos de prueba.
+
+**Pasos:**
+1. Registrar una orden con un servicio y guardar el nombre y precio mostrados.
+2. Modificar posteriormente el nombre o precio del servicio.
+3. Consultar de nuevo la orden original.
+4. Comparar los valores almacenados con los registrados inicialmente.
+
+**Resultado esperado:**
+- La orden existente conserva los valores que le correspondían al registrarse.
+
+**Estado:** Pendiente de ejecutar.
+
+### CP-12. Mensaje comprensible cuando el backend no está disponible
+
+**Preparación:**
+- Tener el frontend abierto.
+- Identificar una operación que requiera comunicación con el backend.
+
+**Pasos:**
+1. Detener el backend.
+2. Intentar realizar la operación desde el frontend.
+3. Observar el mensaje mostrado.
+4. Registrar el resultado obtenido.
+
+**Resultado esperado:**
+- El frontend muestra un mensaje comprensible sobre el problema de conexión.
+- La interfaz no se bloquea inesperadamente.
+
+**Estado:** Pendiente de ejecutar.
