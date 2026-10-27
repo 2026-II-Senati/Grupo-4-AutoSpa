@@ -8,9 +8,20 @@
     "npm": "11.19.1"
   },
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "db:create": "node scripts/db.js create",
+    "db:check": "node scripts/db.js check",
+    "db:migrate": "node scripts/db.js migrate",
+    "db:migrate:undo": "node scripts/db.js migrate:undo",
+    "db:seed": "node scripts/db.js seed",
+    "db:seed:undo": "node scripts/db.js seed:undo",
+    "db:reset": "node scripts/db.js reset",
+    "db:status": "node scripts/db.js status"
   },
   "dependencies": {
-    "express": "5.3.0"
+    "express": "5.3.0",
+    "mysql2": "3.24.6",
+    "sequelize": "6.37.8",
+    "umzug": "3.8.3"
   }
 }
