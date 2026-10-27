@@ -1,4 +1,5 @@
 import express from 'express';
+import ordersRouter from './routes/orders.routes.js';
 
 const app = express();
 const port = 3001;

@@ -22,7 +22,7 @@ export function validateOrder(body) {
   let normalizedPhone = null;
   let normalizedServiceId = null;
 
-+  if (body.plate === undefined || body.plate === null || typeof body.plate !== 'string' || body.plate.trim() === '') {
+  if (body.plate === undefined || body.plate === null || typeof body.plate !== 'string' || body.plate.trim() === '') {
     errors.push({ field: 'plate', message: 'La placa es obligatoria y debe ser un texto no vacío' });
   } else {
     normalizedPlate = body.plate.trim().toUpperCase();
