@@ -69,6 +69,77 @@ npm ci
 
 El comando `npm ci` utiliza los archivos `package-lock.json` del repositorio para instalar las versiones registradas por el equipo. Las carpetas `node_modules` se generan localmente y no deben subirse a GitHub.
 
+## Configurar la base de datos
+
+AutoSpa utiliza MySQL 8.0.16 o posterior con el motor InnoDB. Antes de iniciar el backend, debes configurar la conexión y preparar las tablas.
+
+### 1. Configurar las variables de entorno
+
+Abre una terminal de PowerShell desde la raíz del repositorio y ejecuta:
+
+```powershell
+cd backend
+Copy-Item .env.example .env
+```
+
+Abre `backend/.env` en Visual Studio Code y completa las variables con los datos de tu instalación local de MySQL:
+
+- `DB_HOST`: normalmente `127.0.0.1`.
+- `DB_PORT`: normalmente `3306`.
+- `DB_NAME`: `autospa`.
+- `DB_USER`: usuario de MySQL.
+- `DB_PASSWORD`: contraseña de ese usuario.
+- `DB_LOGGING`: utiliza `true` para mostrar las consultas SQL o `false` para ocultarlas.
+
+No subas el archivo `backend/.env` a GitHub, porque contiene credenciales privadas.
+
+### 2. Preparar el usuario y la base de datos
+
+Si todavía no tienes un usuario para AutoSpa, puedes crear uno desde MySQL Workbench o el cliente de MySQL con una cuenta administradora. Cambia la contraseña de ejemplo por una propia:
+
+```sql
+CREATE USER IF NOT EXISTS 'autospa_app'@'localhost'
+IDENTIFIED BY 'tu_contrasena';
+
+GRANT ALL PRIVILEGES ON autospa.*
+TO 'autospa_app'@'localhost';
+```
+
+Configura ese usuario y contraseña en `backend/.env`. Si MySQL rechaza la conexión debido al host utilizado, revisa la configuración del usuario y los permisos correspondientes.
+
+### 3. Crear las tablas y cargar los datos iniciales
+
+Desde la carpeta `backend/`, ejecuta los siguientes comandos en orden:
+
+```powershell
+npm ci
+npm run db:create
+npm run db:check
+npm run db:migrate
+npm run db:seed
+npm run db:status
+```
+
+Estos comandos instalan las dependencias, crean la base de datos si corresponde, comprueban la conexión, aplican las migraciones y cargan los datos de demostración.
+
+El comando `npm run db:status` permite revisar las migraciones y los datos iniciales aplicados y pendientes.
+
+Si tu usuario no tiene permiso para crear bases de datos, solicita a un administrador que cree `autospa` y luego continúa con las migraciones.
+
+**Precaución:** no ejecutes `npm run db:reset` en una base de datos que contenga información que debas conservar, porque elimina y vuelve a crear las tablas y los datos de demostración.
+
+### 4. Iniciar el backend
+
+Una vez preparada la base de datos, inicia el servidor desde `backend/`:
+
+```powershell
+npm start
+```
+
+Comprueba que la terminal indique que la conexión con MySQL se realizó correctamente. Después, abre `http://localhost:3001/api/health` en el navegador para verificar que el backend responde.
+
+
+
 ## Ejecutar el proyecto
 
 El backend y el frontend deben mantenerse activos al mismo tiempo. Para ello, abre dos terminales en la carpeta raíz del repositorio.
