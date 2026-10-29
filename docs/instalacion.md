@@ -2,7 +2,7 @@
 
 Esta guía explica cómo preparar y ejecutar la versión actual de AutoSpa en una computadora de desarrollo. El proyecto se compone de dos aplicaciones independientes: el frontend desarrollado con React y Vite, y el backend construido con Node.js y Express.
 
-Por el momento no es necesario instalar ni configurar una base de datos. Esa integración se realizará en una etapa posterior del proyecto.
+El backend utiliza una base de datos MySQL 8.0.16 o posterior. Antes de iniciarlo, configura la conexión y prepara la base siguiendo la sección **Base de datos** de [`backend/README.md`](../backend/README.md).
 
 ## Requisitos
 
