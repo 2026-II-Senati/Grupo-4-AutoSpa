@@ -1,79 +1,52 @@
 # PFA-13 — Consultar servicios disponibles y órdenes activas
 
-Esta documentación corresponde únicamente a la PFA-13. El backend expone dos consultas de lectura para que el frontend pueda mostrar el catálogo disponible y las órdenes que siguen activas. Ambas consultan MySQL; no usan listas ficticias como respuesta.
+La rama integra la persistencia de PFA-11 y el registro de PFA-12. Las consultas usan MySQL y conservan `POST /api/orders` con sus validaciones, transacción y protección de placa activa.
 
-## Alcance de esta tarea
+## Contrato
 
-- `GET /api/services`: devuelve servicios activos con `id`, `name` y `price`, ordenados por identificador ascendente.
-- `GET /api/orders`: devuelve órdenes en los estados activos del contrato (`En espera`, `En lavado`, `Listo para entregar`), ordenadas por fecha de ingreso y luego por identificador.
-- La orden incluye identificador, placa, datos acordados del cliente, servicio, precio histórico, estado y fecha de ingreso.
-- Si no hay servicios disponibles o no hay órdenes activas, la respuesta es HTTP 200 con `[]`.
-- `GET /api/health` se conserva para comprobar que el servidor responde.
+La fuente de verdad es [docs/api.md](../docs/api.md); el diseño y las copias históricas se explican en [modelo-datos.md](../docs/modelo-datos.md).
 
-PFA-13 no recibe datos para crear órdenes. La ruta de registro es una dependencia de otra tarea; al integrarse, sus órdenes serán visibles mediante `GET /api/orders`.
+- `GET /api/services`: solo servicios activos, ordenados por `id ASC`. Campos: `id`, `name`, `description` (string o null) y `price` (string decimal con dos posiciones).
+- `GET /api/orders`: solo `waiting`, `washing` y `ready`, ordenados por `createdAt ASC, id ASC`. Campos: `id`, `plate`, `customerName`, `customerPhone` (string o null), `serviceId`, `serviceName`, `servicePrice`, `status`, `createdAt` y `updatedAt`.
+- `serviceName` y `servicePrice` se leen de la orden, sin unir el catálogo actual. `servicePrice` es string decimal con dos posiciones y las fechas son ISO 8601 UTC con `Z`.
+- Ambas consultas responden HTTP 200 con `{"data":[...]}`; sin resultados, `{"data":[]}`.
+- POST y GET comparten la representación de orden. El registro sigue respondiendo HTTP 201 después del commit.
+- `/api/health` conserva HTTP 200 con `{"message":"Backend de AutoSpa disponible"}`.
 
-## Respuestas de ejemplo
-
-`GET /api/services`:
-
-```json
-[
-  { "id": 1, "name": "Lavado básico", "price": 30 },
-  { "id": 2, "name": "Lavado premium", "price": 50 }
-]
-```
-
-`GET /api/orders`:
+Ejemplo de servicios:
 
 ```json
-[
-  {
-    "id": 21,
-    "licensePlate": "ABC123",
-    "customerName": "Ana Pérez",
-    "customerPhone": "+51987654321",
-    "serviceId": 1,
-    "serviceName": "Lavado básico",
-    "price": 30,
-    "status": "En espera",
-    "enteredAt": "2026-10-25T14:00:00.000Z"
-  }
-]
+{"data":[{"id":1,"name":"Lavado básico","description":null,"price":"20.00"}]}
 ```
 
-El nombre y el precio de la orden salen de la instantánea guardada al registrarla, aunque el servicio del catálogo cambie después.
+Los errores usan `{"error":{"code":"...","message":"...","details":[]}}`. Las consultas devuelven HTTP 503 / `TEMPORARILY_UNAVAILABLE` ante indisponibilidad temporal de BD, o HTTP 500 / `INTERNAL_ERROR` ante un fallo inesperado. Los mensajes exactos y los errores del POST están en el contrato; no se devuelven SQL ni credenciales.
 
-## Uso
+No se añaden autenticación, paginación, historial, cambios de estado ni otras operaciones CRUD.
 
-La implementación usa los modelos `Service` y `Order` y la configuración Sequelize que integra la base de datos del backend. Requiere Node.js/npm de la versión acordada por el proyecto y una conexión MySQL configurada en el entorno.
+## Preparación y ejecución
 
-Cuando la configuración de persistencia esté integrada, inicia el servidor desde `backend/`:
+Requisitos del proyecto: Node.js 24.22.1, npm 11.19.1 y MySQL 8.0.16 o posterior. Sigue [Backend: instalación y base de datos](README.md#base-de-datos) para configurar el entorno y las migraciones. Las dependencias y los comandos de migraciones existentes se conservan.
+
+Desde `backend/`:
 
 ```powershell
+npm ci
+npm run db:check
 npm start
 ```
 
-El puerto predeterminado es **3001**. Si está ocupado, puedes iniciar esta instancia en otro puerto:
+Con el servidor iniciado, consulta `/api/services` y `/api/orders` en el puerto configurado (3001 por defecto). Consulta [el contrato](../docs/api.md) para ejemplos completos de POST y GET.
+
+## Pruebas reproducibles
 
 ```powershell
-$env:PORT = '3003'
-npm start
+npm test
+npm run test:mysql
 ```
 
-En una segunda terminal de PowerShell consulta las rutas; usa el mismo puerto con el que iniciaste el servidor:
+- `npm test`: HTTP con modelos y conexión simulados. Comprueba proyecciones, filtros, orden, respuestas vacías, health y formato exacto de errores 500/503. No acredita integración MySQL.
+- `npm run test:mysql`: usa las credenciales del entorno o `backend/.env`, pero sustituye `DB_NAME` por un nombre aleatorio `autospa_pfa13_test_*`. Necesita permiso para crear una base nueva y aplica allí las migraciones reales; no ejecuta reset, seeders ni elimina bases. Conserva el esquema y muestra su nombre al terminar para revisión.
+- La integración arranca el servidor real en un puerto efímero. Comprueba servicios activos/inactivos, campos y tipos, estados activos/finales, orden estable, listas vacías, POST→GET idénticos, copia histórica tras editar el catálogo, JSON/tipo de contenido, validaciones, servicio no disponible, placa duplicada y dos POST concurrentes con exactamente un 201 y un 409.
+- Para el 500 real se renombra y restaura una tabla exclusivamente en el esquema nuevo. Para el 503 se vacía el pool de ese proceso y se dirige su conexión a un puerto inaccesible; no se detiene el servicio MySQL compartido.
 
-```powershell
-Invoke-RestMethod http://localhost:3001/api/health
-Invoke-RestMethod http://localhost:3001/api/services | ConvertTo-Json -Depth 5
-Invoke-RestMethod http://localhost:3001/api/orders | ConvertTo-Json -Depth 5
-```
-
-Si usaste el puerto 3003, reemplaza `3001` por `3003` en las tres URL. Detén el backend con `Ctrl+C` en la primera terminal.
-
-## Errores de consulta
-
-Un fallo al consultar MySQL responde HTTP 500 con este formato, sin mostrar detalles internos:
-
-```json
-{ "code": "INTERNAL_ERROR", "message": "No fue posible procesar la solicitud" }
-```
+Validación local del 28 de octubre de 2026: `npm ci` completado (0 vulnerabilidades reportadas), `npm run db:check` correcto con MySQL 8.0.46, `npm test` con 5 comprobaciones aprobadas y `npm run test:mysql` con 8 aprobadas. El arranque y health se comprobaron desde la suite real. No quedan casos de integración MySQL pendientes del alcance de PFA-13.

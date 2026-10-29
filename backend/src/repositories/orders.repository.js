@@ -1,36 +1,23 @@
 import { Op } from 'sequelize';
-import { ACTIVE_ORDER_STATUSES } from '../config/order-statuses.js';
-import { Order } from '../models/index.js';
-
-function presentOrder(order) {
-  return {
-    id: Number(order.id),
-    licensePlate: order.licensePlate,
-    customerName: order.customerName,
-    customerPhone: order.customerPhone,
-    serviceId: Number(order.serviceId),
-    serviceName: order.serviceName,
-    price: Number(order.servicePrice),
-    status: order.status,
-    enteredAt: new Date(order.enteredAt).toISOString(),
-  };
-}
+import { Order, ACTIVE_ORDER_STATUSES } from '../models/index.js';
+import { presentOrder } from '../services/order-response.js';
 
 export async function findActiveOrders() {
   const orders = await Order.findAll({
     attributes: [
       'id',
-      'licensePlate',
+      'plate',
       'customerName',
       'customerPhone',
       'serviceId',
       'serviceName',
       'servicePrice',
       'status',
-      'enteredAt',
+      'createdAt',
+      'updatedAt',
     ],
     where: { status: { [Op.in]: [...ACTIVE_ORDER_STATUSES] } },
-    order: [['enteredAt', 'ASC'], ['id', 'ASC']],
+    order: [['createdAt', 'ASC'], ['id', 'ASC']],
     raw: true,
   });
 

@@ -24,10 +24,11 @@ export async function createOrder(req, res, next) {
     next(error);
   }
 }
+
 export async function getActiveOrders(_request, response, next) {
   try {
     const orders = await listActiveOrders();
-    response.status(200).json(orders);
+    response.status(200).json({ data: orders });
   } catch (error) {
     next(error);
   }
