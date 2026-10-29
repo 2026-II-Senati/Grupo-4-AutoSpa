@@ -1,281 +1,70 @@
-# Guía de comprobaciones del frontend y backend
+# Guía de comprobaciones de AutoSpa
 
-## 1. Objetivo
+## 1. Objetivo y criterio de evidencia
 
-Documentar los pasos para comprobar que el frontend se abre correctamente, que el backend responde a las solicitudes y que ambos pueden comunicarse. También se comprobará el comportamiento del frontend cuando el backend está apagado y cuando vuelve a estar disponible.
+Este ticket incluye preparar la guía, ejecutar comprobaciones, registrar evidencia y obtener revisión de Castillo. Se comprueba la instalación y el flujo frontend/API/MySQL reales; no basta con escribir resultados esperados.
 
-## 2. Preparación
+El alcance definido y la implementación disponible están separados en el [README](../README.md). El [contrato API](api.md) determina respuestas, formatos y obligatoriedad; no se duplican aquí todas sus reglas.
 
-Antes de comenzar, se debe contar con lo siguiente:
+## 2. Preparación común
 
-* El repositorio del Proyecto Final AutoSpa clonado en el equipo.
-* Las dependencias del frontend y del backend instaladas según las instrucciones del proyecto.
-* Las configuraciones y variables de entorno necesarias.
-* Los comandos y puertos indicados en el README o en la configuración del proyecto.
-* Un navegador web y una terminal para ejecutar los comandos.
-
-*Importante: utilizar los puertos y comandos reales definidos por el proyecto. No asumir que el frontend o el backend utilizan un puerto específico.*
+- Seguir [instalación](instalacion.md) en un clon nuevo y una base MySQL exclusiva vacía; registrar SO, versiones, rama y commit.
+- Instalar ambos lockfiles y preparar migraciones/datos de prueba sin reset ni eliminación de seeders en bases existentes.
+- Usar Vite separado para probar backend apagado: la interfaz debe seguir disponible. En el modo compilado, detener Express también interrumpe el servidor de la interfaz.
+- Mantener VITE_USE_MOCK_API=false al iniciar Vite o compilar. No usar datos de localStorage como evidencia de persistencia MySQL.
+- Elegir placas de prueba libres y servicios activos/inactivos conocidos. Modificar catálogo únicamente en la base exclusiva.
+- Registrar URL/puertos realmente utilizados. Guardar respuestas HTTP, consultas de verificación y, cuando haya navegador, capturas o descripción visual verificable sin secretos ni datos reales de clientes.
+- El botón «Comprobar conexión» está en la bienvenida al seleccionar «Historial» u otra sección distinta de «Órdenes activas». Esa pantalla no implica que el módulo esté implementado.
 
 ## 3. Casos de comprobación
 
-### CP-01. Apertura correcta del frontend
+La tabla restaura los doce casos y separa acciones de expectativas. Los resultados obtenidos se registran en la sección 4; no se marcan como aprobados por inspección de código.
 
-**Preparación:**
-* Tener instalado el entorno requerido por el frontend.
-* Instalar las dependencias según las instrucciones del proyecto.
-
-**Pasos:**
-1. Abrir una terminal en la carpeta del frontend.
-2. Ejecutar el comando de inicio documentado en el proyecto.
-3. Esperar a que el servidor de desarrollo indique que está disponible.
-4. Abrir en el navegador la dirección local que muestra la terminal.
-5. Verificar que la interfaz se visualiza correctamente.
-
-**Resultado esperado:**
-* El frontend se abre en el navegador.
-* La interfaz principal se muestra sin errores que impidan su uso.
-* El servidor de desarrollo permanece activo.
-
-**Estado:** Pendiente de ejecutar.
-
----
-
-### CP-02. Consulta directa al endpoint de salud del backend
-
-**Preparación:**
-* Tener el backend instalado y configurado.
-* Conocer el puerto en el que se ejecuta el backend.
-
-**Pasos:**
-1. Iniciar el backend siguiendo las instrucciones del proyecto.
-2. Abrir el navegador o una herramienta para realizar solicitudes HTTP.
-3. Consultar directamente el endpoint `GET /api/health`, utilizando la dirección base y el puerto reales del backend.
-4. Revisar el código de respuesta HTTP y el contenido devuelto.
-
-**Resultado esperado:**
-* El backend responde a la solicitud.
-* La respuesta HTTP indica que la consulta fue atendida correctamente, normalmente con código `200 OK`.
-* El contenido devuelto corresponde a la respuesta de salud definida por el proyecto.
-
-**Estado:** Pendiente de ejecutar.
-
----
-
-### CP-03. Comunicación entre frontend y backend con el backend encendido
-
-**Preparación:**
-* Tener el frontend iniciado.
-* Tener el backend encendido y disponible.
-* Verificar que la URL del backend esté configurada correctamente en el frontend.
-
-**Pasos:**
-1. Abrir el frontend en el navegador.
-2. Confirmar que el backend está ejecutándose.
-3. Identificar el botón de la interfaz destinado a comprobar la conexión con el backend.
-4. Pulsar el botón una vez.
-5. Observar el mensaje mostrado por el frontend y, si es necesario, revisar las solicitudes en las herramientas de desarrollador del navegador.
-
-**Resultado esperado:**
-* El frontend realiza la solicitud al backend.
-* La solicitud llega al servicio correspondiente y recibe una respuesta válida.
-* La interfaz muestra el resultado satisfactorio definido para la comprobación de conexión.
-
-**Estado:** Pendiente de ejecutar.
-
----
-
-### CP-04. Comportamiento del frontend con el backend apagado
-
-**Preparación:**
-* Tener el frontend iniciado.
-* Confirmar que el backend está funcionando inicialmente.
-* Identificar el proceso del backend para poder detenerlo sin cerrar el frontend.
-
-**Pasos:**
-1. Detener el proceso del backend.
-2. Confirmar que el frontend continúa abierto en el navegador.
-3. Pulsar el botón destinado a comprobar la conexión con el backend.
-4. Observar el mensaje de respuesta.
-5. Verificar que la interfaz continúa siendo utilizable y no presenta un bloqueo inesperado.
-
-**Resultado esperado:**
-* La solicitud no puede completarse porque el backend está apagado.
-* El frontend informa del fallo de conexión mediante un mensaje comprensible.
-* La interfaz gestiona el error sin bloquearse ni finalizar inesperadamente.
-
-**Estado:** Pendiente de ejecutar.
-
----
-
-### CP-05. Recuperación de la conexión después de encender nuevamente el backend
-
-**Preparación:**
-* Tener el frontend abierto.
-* Haber detenido el backend durante la comprobación anterior.
-
-**Pasos:**
-1. Iniciar nuevamente el backend con el comando documentado.
-2. Esperar a que el servicio esté disponible.
-3. Consultar `GET /api/health` para comprobar que el backend responde.
-4. Volver al frontend sin cerrarlo.
-5. Pulsar nuevamente el botón de comprobación de conexión.
-6. Observar el resultado mostrado por la interfaz.
-
-**Resultado esperado:**
-* El backend vuelve a estar disponible.
-* La consulta de salud responde correctamente.
-* El frontend puede realizar una nueva solicitud sin necesidad de reiniciarse.
-* La interfaz muestra el resultado satisfactorio de la conexión.
-
-**Estado:** Pendiente de ejecutar.
+| Caso | Comprobación y preparación específica | Pasos | Resultado esperado |
+| --- | --- | --- | --- |
+| CP-01 | Apertura del frontend; entorno común listo | Iniciar Vite, abrir la URL indicada y observar formulario, lista y navegación. Repetir con build servido por Express. | Interfaz visible y utilizable, sin errores que impidan el uso. Entregar HTML por HTTP o compilar no sustituye esta observación. |
+| CP-02 | Salud del backend con MySQL disponible | Iniciar API; consultar directamente GET /api/health y guardar estado/cuerpo. | HTTP 200 y {"message":"Backend de AutoSpa disponible"}. |
+| CP-03 | Comunicación con backend encendido | En navegador seleccionar Historial, pulsar Comprobar conexión y volver a Órdenes activas; revisar peticiones de servicios y órdenes. | Health muestra su mensaje; GET services/orders reciben HTTP 200 con data, y la interfaz presenta resultados o lista vacía correctamente. |
+| CP-04 | Backend apagado con Vite activo | Detener solo el backend de prueba, mantener Vite/navegador; pulsar Comprobar conexión y navegar. | Mensaje comprensible de conexión fallida; interfaz utilizable. No se confunde un fallo de red con HTTP 503 de una API aún encendida. |
+| CP-05 | Recuperación tras CP-04 | Reiniciar el mismo backend con la misma BD, comprobar health y reintentar desde la interfaz sin reiniciar Vite. | Health 200 y recuperación de conexión. La lista puede reconsultarse; documentar si hace falta reintentar o recargar para recuperar servicios. |
+| CP-06 | Orden válida con servicio activo y placa libre | Completar formulario; enviar; guardar respuesta POST, consultar GET orders y observar la lista. | HTTP 201 después del commit; orden visible por GET y en interfaz con mismo id y datos; estado waiting. |
+| CP-07 | Persistencia tras CP-06 | Guardar id/datos; recargar navegador y revisar nueva petición GET orders y fila de la lista. | La orden guardada sigue en MySQL y vuelve a consultarse y mostrarse; no depende de memoria/localStorage ni se duplica al recargar. |
+| CP-08 | Datos inválidos | Probar campos obligatorios vacíos en formulario. Por API enviar cuerpo vacío, serviceId string y campo desconocido; comparar filas antes/después. | La interfaz señala el problema. API devuelve HTTP 422 VALIDATION_ERROR con details según contrato y no inserta filas. La validación HTML puede impedir que el formulario envíe; no exige un HTTP para esa acción local. |
+| CP-09 | Duplicado y normalización | Confirmar una placa libre (por ejemplo NUN123); crear con " nun-123 " y repetir con NUN123. Comprobar UI/API y filas; opcionalmente dos POST simultáneos con otra placa libre. | Primera 201 y placa NUN123; segunda 409 ACTIVE_ORDER_EXISTS, una sola activa. Concurrencia: un 201 y un 409, sin filas parciales. |
+| CP-10 | Servicio inactivo | Preparar activo/inactivo; abrir opciones, consultar GET services e intentar POST directo con id inactivo, datos válidos y placa libre. | Inactivo ausente de opciones y GET. POST: 422 SERVICE_UNAVAILABLE, detalle serviceId y sin orden nueva. |
+| CP-11 | Copia histórica | Registrar orden, guardar serviceName/servicePrice; cambiar catálogo solo en BD exclusiva; volver a GET y recargar lista. | La orden conserva nombre/precio históricos; precio string de dos posiciones. El catálogo actualizado no reescribe la orden existente. |
+| CP-12 | Envío con backend no disponible | Con servicios cargados y formulario completo, detener solo backend, enviar, observar mensaje y editar campos; reiniciar y reintentar con cuidado. | Mensaje comprensible, interfaz utilizable y datos del formulario conservados. No se supone idempotencia: consultar órdenes antes de reenviar si se perdió una respuesta. |
 
 ## 4. Registro de resultados
 
-Los estados de esta guía se actualizarán únicamente después de ejecutar cada caso.
+Estados: **Pendiente** (no ejecutado), **Aprobado** (toda la comprobación indicada pasó), **Fallido** (resultado observado contradice lo esperado), **Bloqueado** (no puede completarse por una causa identificada). Un caso con tramo visual bloqueado no se aprueba por tener pruebas API aprobadas.
 
-Caso	Comprobación	                                                        Estado
-CP-01	Apertura del frontend	                                        Pendiente de ejecutar
-CP-02	Consulta GET /api/health	                                    Pendiente de ejecutar
-CP-03	Conexión con backend encendido	                                Pendiente de ejecutar
-CP-04	Conexión con backend apagado	                                Pendiente de ejecutar
-CP-05	Recuperación de la conexión	                                    Pendiente de ejecutar
-CP-06	Registro de una orden válida	                                Pendiente de ejecutar
-CP-07	Persistencia de la orden después de recargar	                Pendiente de ejecutar
-CP-08	Rechazo de campos obligatorios faltantes	                    Pendiente de ejecutar
-CP-09	Rechazo de una placa duplicada en una orden activa	            Pendiente de ejecutar
-CP-10	Rechazo de servicios inactivos	                                Pendiente de ejecutar
-CP-11	Conservación de los datos del servicio en órdenes existentes	Pendiente de ejecutar
-CP-12	Mensaje cuando el backend no está disponible	                Pendiente de ejecutar
+Fecha de esta ejecución: **2026-10-29, America/Lima**. Entorno **E1**: Windows, Node 24.22.1, npm 11.19.1, MySQL 8.0.46; clon local nuevo, API real y mocks del frontend desactivados. Commit probado **C1**: `2e8f2b701d868899b3eaeb76ff983a530aec365c` (merge de develop en la rama de Núñez). Las correcciones posteriores son exclusivamente documentales sin commit final.
 
-Cuando corresponda, se registrarán la fecha, el resultado obtenido, las observaciones y la evidencia. Los fallos detectados durante la ejecución deberán comunicarse en los tickets de implementación correspondientes.
+Evidencia **EV**: [registro de ejecución PR #12](evidencias/pr12-2026-10-29.md). **B1**: servicio de automatización de navegador no disponible; inventario sin navegadores y error de conexión al pipe nativo. No se generaron capturas ni se afirma haber observado React en un navegador.
 
-## 5. Revisión e integración
+| Caso | Estado | Fecha | Entorno | Commit probado | Resultado obtenido y causa | Evidencia |
+| --- | --- | --- | --- | --- | --- | --- |
+| CP-01 | Bloqueado | 2026-10-29 | E1 | C1 | Instalación/build y HTML/asset HTTP 200 comprobados; falta apertura visual por B1. | [EV, E1/E4](evidencias/pr12-2026-10-29.md) |
+| CP-02 | Aprobado | 2026-10-29 | E1 | C1 | Arranque con MySQL y health 200 con cuerpo exacto, en suite real y servidor aislado. | [EV, E3/E4](evidencias/pr12-2026-10-29.md) |
+| CP-03 | Bloqueado | 2026-10-29 | E1 | C1 | GET reales aprobados; interacción del botón y presentación visual pendientes por B1. | [EV, E3/E4/E5](evidencias/pr12-2026-10-29.md) |
+| CP-04 | Bloqueado | 2026-10-29 | E1 | C1 | No se observó interfaz con API apagada; B1. Prueba de BD inaccesible no equivale a este caso. | [EV, E5](evidencias/pr12-2026-10-29.md) |
+| CP-05 | Bloqueado | 2026-10-29 | E1 | C1 | No se observó recuperación visual tras apagar/reiniciar; B1. | [EV, E5](evidencias/pr12-2026-10-29.md) |
+| CP-06 | Bloqueado | 2026-10-29 | E1 | C1 | POST 201 seguido de GET idéntico aprobado en MySQL; envío y fila visual sin ejecutar por B1. | [EV, E3](evidencias/pr12-2026-10-29.md) |
+| CP-07 | Bloqueado | 2026-10-29 | E1 | C1 | Persistencia y nueva consulta API comprobadas; recarga real del navegador pendiente por B1. | [EV, E3](evidencias/pr12-2026-10-29.md) |
+| CP-08 | Bloqueado | 2026-10-29 | E1 | C1 | API devolvió 422 VALIDATION_ERROR y la comprobación adicional conservó los ids activos; validación visual pendiente por B1. | [EV, E3/E4](evidencias/pr12-2026-10-29.md) |
+| CP-09 | Bloqueado | 2026-10-29 | E1 | C1 | API normalizó placa, rechazó duplicado con 409 y pasó concurrencia un 201/un 409; mensaje visual pendiente por B1. | [EV, E3](evidencias/pr12-2026-10-29.md) |
+| CP-10 | Bloqueado | 2026-10-29 | E1 | C1 | GET excluyó inactivos y POST devolvió 422 SERVICE_UNAVAILABLE; selector visual pendiente por B1. | [EV, E3](evidencias/pr12-2026-10-29.md) |
+| CP-11 | Bloqueado | 2026-10-29 | E1 | C1 | GET conservó copia histórica tras cambio del catálogo; recarga/lista visual pendientes por B1. | [EV, E3](evidencias/pr12-2026-10-29.md) |
+| CP-12 | Bloqueado | 2026-10-29 | E1 | C1 | No se observó envío fallido ni conservación visual de campos; B1. | [EV, E5](evidencias/pr12-2026-10-29.md) |
+| Instalación limpia automatizada | Aprobado | 2026-10-29 | E1 | C1 | Clon local nuevo, ambos npm ci, build real, BD nueva, dos migraciones y dos seeders sin pendientes. No acredita instalación por otra persona. | [EV, E1/E2](evidencias/pr12-2026-10-29.md) |
+| Reproducción por otro integrante | Pendiente | — | Por registrar | Por registrar | Falta confirmación de otra persona desde su clon y base nueva. | Sin evidencia aún |
+| Revisión de Castillo | Pendiente | — | PR #12 | Por registrar | No se solicitó ni inventó aprobación; corresponde al revisor. | Sin evidencia aún |
 
-Para completar esta tarea:
+## 5. Revisión y condición de cierre
 
-1. Verificar que los cinco casos incluyen preparación, pasos y resultado esperado.
-2. Confirmar que los comandos, las rutas y los puertos mencionados coinciden con la configuración real del proyecto.
-3. Guardar el documento en `docs/comprobaciones.md`.
-4. Solicitar la revisión correspondiente y comprobar que el archivo queda integrado en `develop`.
+Revisar los **doce casos**, enlaces, tablas, comandos y coherencia con código/contrato. Registrar cada ejecución con caso, estado, fecha, entorno, commit, resultado obtenido y evidencia. Los defectos funcionales se reportan a las entregas de implementación; no se ocultan cambiando expectativas.
 
-**Condición de cierre:** la guía está completa, revisada e integrada en `develop`. La ejecución efectiva de las comprobaciones corresponde a los tickets de implementación.
+**Condición de cierre del ticket:** guía e instalación completas; comprobaciones ejecutadas con evidencia y fallos resueltos/recomprobados o limitaciones aceptadas expresamente en revisión; reproducción confirmada por otro integrante; revisión de Castillo e integración autorizada en develop. Preparar documentación no transfiere la ejecución a otros tickets ni cierra automáticamente este trabajo.
 
-### CP-06. Registro de una orden válida
-
-**Preparación:**
-- Disponer de la integración del flujo de órdenes implementada.
-- Tener el backend y el frontend configurados y en ejecución.
-- Contar con datos de prueba válidos.
-
-**Pasos:**
-1. Abrir el frontend.
-2. Completar los campos obligatorios con datos de prueba válidos.
-3. Registrar la orden.
-4. Comprobar si la orden aparece en la lista.
-
-**Resultado esperado:**
-- La orden se registra correctamente.
-- La orden aparece en la lista de órdenes.
-
-**Estado:** Pendiente de ejecutar.
-
-### CP-07. Persistencia de la orden después de recargar la página
-
-**Preparación:**
-- Haber registrado una orden válida.
-- Disponer de la persistencia de órdenes implementada.
-
-**Pasos:**
-1. Registrar una orden válida.
-2. Recargar la página del frontend.
-3. Consultar nuevamente la lista de órdenes.
-
-**Resultado esperado:**
-- La orden registrada continúa apareciendo después de recargar la página.
-
-**Estado:** Pendiente de ejecutar.
-
-### CP-08. Rechazo de campos obligatorios faltantes
-
-**Preparación:**
-- Disponer del registro de órdenes implementado.
-
-**Pasos:**
-1. Abrir el formulario de registro de órdenes.
-2. Dejar vacío un campo obligatorio.
-3. Intentar registrar la orden.
-4. Observar la respuesta de la interfaz.
-
-**Resultado esperado:**
-- La orden no se registra.
-- La interfaz informa qué dato obligatorio falta o qué debe corregirse.
-
-**Estado:** Pendiente de ejecutar.
-
-### CP-09. Rechazo de una placa duplicada en una orden activa
-
-**Preparación:**
-- Disponer de órdenes y validación de placas implementadas.
-- Contar con una orden activa de prueba asociada a una placa.
-
-**Pasos:**
-1. Registrar o localizar una orden activa de prueba.
-2. Intentar registrar otra orden activa con la misma placa.
-3. Observar la respuesta del sistema.
-
-**Resultado esperado:**
-- El sistema rechaza la segunda orden activa para la misma placa.
-
-**Estado:** Pendiente de ejecutar.
-
-### CP-10. Rechazo de servicios inactivos
-
-**Preparación:**
-- Disponer de servicios con estado activo e inactivo.
-- Contar con el flujo de órdenes implementado.
-
-**Pasos:**
-1. Comprobar si un servicio inactivo aparece entre las opciones del formulario.
-2. Enviar una solicitud directa a la API intentando registrar una orden con ese servicio.
-3. Registrar la respuesta obtenida.
-
-**Resultado esperado:**
-- El servicio inactivo no se puede seleccionar en la interfaz.
-- La API rechaza la solicitud que intenta utilizar el servicio inactivo.
-
-**Estado:** Pendiente de ejecutar.
-
-### CP-11. Conservación de los datos del servicio en órdenes existentes
-
-**Preparación:**
-- Disponer de órdenes y servicios persistidos.
-- Utilizar exclusivamente datos de prueba.
-
-**Pasos:**
-1. Registrar una orden con un servicio y guardar el nombre y precio mostrados.
-2. Modificar posteriormente el nombre o precio del servicio.
-3. Consultar de nuevo la orden original.
-4. Comparar los valores almacenados con los registrados inicialmente.
-
-**Resultado esperado:**
-- La orden existente conserva los valores que le correspondían al registrarse.
-
-**Estado:** Pendiente de ejecutar.
-
-### CP-12. Mensaje comprensible cuando el backend no está disponible
-
-**Preparación:**
-- Tener el frontend abierto.
-- Identificar una operación que requiera comunicación con el backend.
-
-**Pasos:**
-1. Detener el backend.
-2. Intentar realizar la operación desde el frontend.
-3. Observar el mensaje mostrado.
-4. Registrar el resultado obtenido.
-
-**Resultado esperado:**
-- El frontend muestra un mensaje comprensible sobre el problema de conexión.
-- La interfaz no se bloquea inesperadamente.
-
-**Estado:** Pendiente de ejecutar.
+Estado actual: documentación preparada para revisión; ticket completo **no cerrado**, por bloqueo visual B1, reproducción independiente y revisión pendientes.
