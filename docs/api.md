@@ -199,5 +199,3 @@ Deshabilitar el botón durante el envío evita dobles clics; la garantía ante c
 | Cambio de precio/nombre en catálogo de prueba                  | Orden conserva serviceName y servicePrice originales         |
 | Orden delivered/cancelled preparada en BD de prueba            | No aparece en GET; permite nueva visita de esa placa         |
 | Backend apagado / BD inaccesible                               | Error de red en React / HTTP 503 si Express sigue disponible |
-
-

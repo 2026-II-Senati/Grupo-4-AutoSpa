@@ -49,9 +49,11 @@ El proyecto se organizará en los siguientes directorios, que se incorporarán c
 - [Reglas del negocio](docs/reglas-negocio.md)
 - [Decisiones técnicas](docs/decisiones-tecnicas-autospa.md)
 - [Instalacion](docs/instalacion.md)
+- [Contrato de la API](docs/api.md)
+- [Modelo de datos](docs/modelo-datos.md)
 
 ## Estado del proyecto
 
-Proyecto en desarrollo. Actualmente se está preparando la base técnica para ejecutar el frontend y el backend y comprobar su comunicación.
+Proyecto en desarrollo. El backend disponible ofrece `GET /api/health`; el contrato de servicios y órdenes está documentado para su implementación.
 
-El diseño detallado de la base de datos se encuentra pendiente.
+El modelo de datos está descrito y pendiente de aprobación e implementación.

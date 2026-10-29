@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
+    "start:app": "npm --prefix ../frontend run build && node src/server.js",
     "db:create": "node scripts/db.js create",
     "db:check": "node scripts/db.js check",
     "db:migrate": "node scripts/db.js migrate",
@@ -16,7 +17,9 @@
     "db:seed": "node scripts/db.js seed",
     "db:seed:undo": "node scripts/db.js seed:undo",
     "db:reset": "node scripts/db.js reset",
-    "db:status": "node scripts/db.js status"
+    "db:status": "node scripts/db.js status",
+    "test": "node --test test/queries.test.js",
+    "test:mysql": "node --test test/mysql.integration.js"
   },
   "dependencies": {
     "express": "5.3.0",
