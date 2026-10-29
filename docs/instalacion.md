@@ -2,7 +2,7 @@
 
 Esta guía explica cómo preparar y ejecutar la versión actual de AutoSpa en una computadora de desarrollo. El proyecto se compone de dos aplicaciones independientes: el frontend desarrollado con React y Vite, y el backend construido con Node.js y Express.
 
-El backend utiliza una base de datos MySQL 8.0.16 o posterior. Antes de iniciarlo, configura la conexión y prepara la base siguiendo la sección **Base de datos** de [`backend/README.md`](../backend/README.md).
+El backend utiliza una base de datos MySQL 8.0.16 o posterior. Puedes usar un MySQL instalado en tu computadora o levantarlo con Docker (sección [Base de datos con Docker](#base-de-datos-con-docker)). En ambos casos, prepara la base siguiendo la sección **Base de datos** de [`backend/README.md`](../backend/README.md).
 
 ## Requisitos
 
@@ -68,6 +68,98 @@ npm ci
 ```
 
 El comando `npm ci` utiliza los archivos `package-lock.json` del repositorio para instalar las versiones registradas por el equipo. Las carpetas `node_modules` se generan localmente y no deben subirse a GitHub.
+
+## Base de datos con Docker
+
+Con Docker no hace falta instalar MySQL en tu computadora. `compose.yaml` (en la raíz) levanta **solo MySQL 8.4.9**; el backend y el frontend se siguen ejecutando con npm.
+
+### Requisitos
+
+- Docker Desktop iniciado (en Windows necesita WSL 2). Debe mostrar **Engine running**.
+- Comprobar en una terminal:
+
+```bash
+docker --version
+docker compose version
+```
+
+### Dos archivos .env distintos
+
+| Archivo | Lo usa | Qué contiene |
+| --- | --- | --- |
+| `.env` (raíz) | Docker Compose | Puerto publicado, base, usuario y contraseñas del contenedor |
+| `backend/.env` | Backend (Node) | Cómo conectarse a ese MySQL: host, puerto, usuario y contraseña |
+
+Ninguno se sube a GitHub. El usuario y la contraseña de la aplicación deben ser **los mismos** en los dos. El backend nunca usa `root`.
+
+### 1. Configurar y arrancar MySQL
+
+Desde la raíz del repositorio:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Edita `.env` y cambia `MYSQL_PASSWORD` y `MYSQL_ROOT_PASSWORD`. Luego inicia el contenedor:
+
+```bash
+docker compose up -d
+```
+
+La primera vez descarga la imagen y crea la base `autospa` y el usuario `autospa_app` con permisos solo sobre esa base.
+
+### 2. Comprobar que MySQL está disponible
+
+```bash
+docker compose ps
+```
+
+La columna `STATUS` debe indicar `healthy`. Si dice `health: starting`, espera unos segundos y repite. Para ver los mensajes de MySQL:
+
+```bash
+docker compose logs mysql
+```
+
+### 3. Conectar el backend
+
+En `backend/.env` usa el puerto publicado (por defecto `3307`) y el usuario de la aplicación:
+
+```text
+DB_HOST=127.0.0.1
+DB_PORT=3307
+DB_NAME=autospa
+DB_USER=autospa_app
+DB_PASSWORD=la misma contraseña que MYSQL_PASSWORD
+```
+
+Después, desde `backend/`:
+
+```bash
+npm run db:check
+npm run db:migrate
+npm run db:seed
+npm start
+```
+
+`db:check` debe responder `Conexión correcta: MySQL 8.4.9`. No hace falta `npm run db:create`: el contenedor ya crea la base.
+
+### 4. Detener y volver a iniciar
+
+```bash
+docker compose stop     # detiene MySQL y conserva los datos
+docker compose start    # lo vuelve a iniciar con las mismas tablas y datos
+docker compose down     # elimina el contenedor; los datos siguen en el volumen
+```
+
+Los datos se guardan en el volumen con nombre `autospa_mysql-data`, por eso sobreviven a `stop`, `start` y `down`.
+
+> ⚠️ `docker compose down -v` **elimina también el volumen y todos sus datos**. Úsalo solo si quieres empezar con una base vacía; después tendrás que repetir `db:migrate` y `db:seed`.
+
+### Problemas frecuentes con Docker
+
+- **El puerto 3307 está ocupado:** cambia `MYSQL_PORT` en el `.env` de la raíz y el mismo número en `DB_PORT` de `backend/.env`, y ejecuta `docker compose up -d` de nuevo.
+- **`usuario o contraseña incorrectos` en el backend:** la contraseña de `backend/.env` no coincide con `MYSQL_PASSWORD`. Si cambiaste la contraseña después del primer arranque, el contenedor conserva la anterior: usa la original o reinicia con `docker compose down -v` (borra los datos).
+- **`docker` no se reconoce o no responde:** abre Docker Desktop y espera a que indique **Engine running**.
 
 ## Ejecutar el proyecto
 
