@@ -57,9 +57,13 @@ npm ci
 npm run dev
 ```
 
-Abre `http://localhost:3000`. En modo desarrollo, la pantalla usa por defecto servicios de demostración y guarda las órdenes en `localStorage` para que sigan apareciendo después de recargar. Estos datos no se envían al backend ni se guardan en MySQL.
+Abre `http://localhost:3000`. La pantalla usa por defecto `GET /api/services`, `GET /api/orders` y `POST /api/orders`; Vite reenvía las solicitudes al backend en `http://localhost:3001`. Inicia el backend y configura su conexión a MySQL antes de usar la pantalla.
 
-Cuando estén disponibles `GET /api/services`, `GET /api/orders` y `POST /api/orders`, configura `VITE_USE_MOCK_API=false` en `frontend/.env.local` y reinicia Vite. El proxy de `vite.config.js` enviará las solicitudes al backend. El formato de esas rutas está descrito en `../docs/api.md`.
+Para habilitar datos de demostración guardados en `localStorage`, agrega `VITE_USE_MOCK_API=true` en `frontend/.env.local` y reinicia Vite. En ese modo las solicitudes no llegan al backend. El formato de las rutas reales está descrito en `../docs/api.md`.
+
+### Servir frontend y API en un solo puerto
+
+Después de instalar las dependencias del backend y frontend, ejecuta `npm run start:app` desde `backend/`. El comando construye React y Express sirve la interfaz y las rutas `/api/...` desde `http://localhost:3001`.
 
 ## Estructura principal
 

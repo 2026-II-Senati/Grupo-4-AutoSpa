@@ -1,7 +1,7 @@
 import { createDemoOrder, getDemoOrders, getDemoServices } from './mockOrdersApi.js';
 
-const useMockApi = import.meta.env.VITE_USE_MOCK_API === 'true'
-  || (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_API !== 'false');
+// Use the real backend by default. Enable local demo data only when explicitly requested.
+const useMockApi = import.meta.env.VITE_USE_MOCK_API === 'true';
 
 async function request(path, options = {}) {
   let response;

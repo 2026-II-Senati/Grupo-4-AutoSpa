@@ -19,13 +19,29 @@ npm ci
 
 Antes de iniciar el servidor, prepara la base de datos siguiendo la sección [Base de datos](#base-de-datos). El backend comprueba la conexión al arrancar; si MySQL no responde, muestra el motivo y se detiene.
 
-Inicia el servidor con:
+Para iniciar únicamente la API, ejecuta:
 
 ```bash
 npm start
 ```
 
-El servidor queda escuchando en el puerto `3001`. Mantén abierta la terminal mientras lo usas.
+El servidor queda escuchando en el puerto `3001`.
+
+### Iniciar frontend y API en un solo servidor
+
+Instala las dependencias del frontend una vez desde `frontend/`:
+
+```bash
+npm ci
+```
+
+Luego vuelve a `backend/` y ejecuta:
+
+```bash
+npm run start:app
+```
+
+Este comando construye React y Express sirve la interfaz y los endpoints desde el mismo origen: `http://localhost:3001`. Mantén abierta la terminal mientras lo usas.
 
 ## Consultar el backend
 
@@ -43,7 +59,7 @@ Puedes abrir esa dirección en el navegador o consultarla con Postman. La respue
 
 ## Comunicación con el frontend
 
-El backend recibe solicitudes HTTP en el puerto `3001`. El frontend podrá consultar sus rutas mediante HTTP; la configuración para conectar React con este servidor se realizará en la tarea de integración correspondiente.
+La interfaz llama las rutas relativas `/api/services`, `/api/orders` y `/api/health`, así que funciona desde el mismo origen cuando se inicia con `npm run start:app`. Durante desarrollo, Vite también puede ejecutarse en `http://localhost:3000` y reenviar `/api` al backend en `3001`.
 
 ## Detener el servidor
 
