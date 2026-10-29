@@ -1,5 +1,5 @@
 import { validateOrder } from '../validators/orders.validator.js';
-import { registerOrder } from '../services/orders.service.js';
+import { registerOrder, listActiveOrders } from '../services/orders.service.js';
 
 export async function createOrder(req, res, next) {
   try {
@@ -20,6 +20,15 @@ export async function createOrder(req, res, next) {
     return res.status(201).json({
       data: order,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getActiveOrders(_request, response, next) {
+  try {
+    const orders = await listActiveOrders();
+    response.status(200).json({ data: orders });
   } catch (error) {
     next(error);
   }

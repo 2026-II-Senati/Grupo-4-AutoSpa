@@ -1,3 +1,5 @@
+import { presentOrder } from './order-response.js';
+import { findActiveOrders } from '../repositories/orders.repository.js';
 import {
   ConnectionError,
   ConnectionAcquireTimeoutError,
@@ -94,16 +96,9 @@ export async function registerOrder(data) {
     throw error;
   }
 
-  return {
-    id: order.id,
-    plate: order.plate,
-    customerName: order.customerName,
-    customerPhone: order.customerPhone,
-    serviceId: order.serviceId,
-    serviceName: order.serviceName,
-    servicePrice: order.servicePrice,
-    status: order.status,
-    createdAt: order.createdAt.toISOString(),
-    updatedAt: order.updatedAt.toISOString(),
-  };
+  return presentOrder(order);
+}
+
+export async function listActiveOrders() {
+  return findActiveOrders();
 }

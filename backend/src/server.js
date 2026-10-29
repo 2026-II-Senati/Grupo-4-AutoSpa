@@ -3,6 +3,7 @@ import express from 'express';
 import { config } from './config/env.js';
 import { verifyDatabaseConnection } from './db/connection.js';
 import ordersRouter from './routes/orders.routes.js';
+import servicesRouter from './routes/services.routes.js';
 import { isTemporaryDatabaseError } from './services/orders.service.js';
 
 const app = express();
@@ -39,6 +40,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/orders', ordersRouter);
+app.use('/api/services', servicesRouter);
 
 app.use((err, req, res, next) => {
   if (res.headersSent) {
