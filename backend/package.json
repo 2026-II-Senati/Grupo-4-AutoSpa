@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
+    "start:app": "npm --prefix ../frontend run build && node src/server.js",
     "db:create": "node scripts/db.js create",
     "db:check": "node scripts/db.js check",
     "db:migrate": "node scripts/db.js migrate",

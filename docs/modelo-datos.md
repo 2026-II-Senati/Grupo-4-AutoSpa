@@ -215,4 +215,3 @@ Al implementar cada etapa, actualizar el contrato HTTP y la guía de instalació
 La implementación debe demostrar: creación waiting; rechazo de servicio inactivo; conservación del nombre/precio tras editar el catálogo; normalización de placas equivalentes; dos solicitudes concurrentes con exactamente un 201 y un 409; cero filas parciales; reutilización de placa tras un estado final con datos de prueba, sin añadir endpoints fuera de alcance.
 
 En las etapas posteriores se comprobará: correo duplicado rechazado tras normalización; usuario inactivo impedido de operar; órdenes anteriores con creador NULL sin atribuciones inventadas; cancelación solo desde waiting y con motivo; transición y evento confirmados o revertidos juntos; cambios concurrentes sin saltos ni eventos duplicados; conservación del historial al desactivar cuentas y servicios.
-

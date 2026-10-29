@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { config } from './config/env.js';
 import { verifyDatabaseConnection } from './db/connection.js';
@@ -8,6 +10,8 @@ import { isTemporaryDatabaseError } from './services/orders.service.js';
 
 const app = express();
 const port = config.port;
+const frontendDistPath = fileURLToPath(new URL('../../frontend/dist/', import.meta.url));
+const frontendIndexPath = path.join(frontendDistPath, 'index.html');
 
 app.use('/api/orders', (req, res, next) => {
   if (req.method === 'POST') {
@@ -41,6 +45,17 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/orders', ordersRouter);
 app.use('/api/services', servicesRouter);
+
+app.use(express.static(frontendDistPath));
+app.get(/.*/, (req, res, next) => {
+  if (req.path === '/api' || req.path.startsWith('/api/')) {
+    return next();
+  }
+
+  return res.sendFile(frontendIndexPath, (error) => {
+    if (error) next(error);
+  });
+});
 
 app.use((err, req, res, next) => {
   if (res.headersSent) {
