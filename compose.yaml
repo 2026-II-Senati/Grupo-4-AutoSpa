@@ -1,0 +1,37 @@
+# Base de datos MySQL de AutoSpa para desarrollo local.
+# Solo la base de datos corre en Docker; el backend y el frontend siguen con npm.
+# Configuración: copia .env.example como .env en esta misma carpeta (raíz del repositorio).
+# Guía: docs/instalacion.md, sección "Base de datos con Docker".
+name: autospa
+
+services:
+  mysql:
+    # Versión concreta, compatible con las migraciones (requieren MySQL 8.0.16 o posterior).
+    image: mysql:8.4.9
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en el .env de la raíz}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-autospa}
+      # Usuario de la aplicación: recibe todos los permisos solo sobre MYSQL_DATABASE.
+      # El backend usa este usuario, nunca root.
+      MYSQL_USER: ${MYSQL_USER:-autospa_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD en el .env de la raíz}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      # Solo accesible desde esta computadora. Por defecto 3307 para no chocar con un MySQL local en 3306.
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # Responde cuando el servidor MySQL acepta conexiones por TCP (no usa contraseñas).
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  # Volumen con nombre: conserva tablas y datos al detener y volver a iniciar el contenedor.
+  mysql-data:
