@@ -2,32 +2,32 @@
 
 
 
-## 1. Alcance y decisiones para revisión
+## 1. Alcance definido e implementación
 
-MySQL es el motor confirmado y Sequelize el acceso a datos previsto. Este ticket define el diseño; conexión, migraciones, endpoints e interfaz corresponden a los tickets de implementación.
+MySQL es el motor confirmado y Sequelize el acceso a datos implementado. El código actual tiene conexión, migraciones y modelos de services/orders, registro y consultas API y formulario/listado React. Usuarios y auditoría tienen diseño para entregas posteriores; no existen aún sus tablas ni operaciones. La validación ejecutada se mantiene en [comprobaciones.md](comprobaciones.md).
 
 El diseño comprende cuatro entidades: `users`, `services`, `orders` y `order_status_changes`. Una orden pertenece a un servicio y un servicio puede aparecer en muchas órdenes. Cada visita genera una orden nueva. Los datos de cliente y vehículo se conservan en la orden; el alcance actual no requiere catálogos independientes de clientes o vehículos.
 
 | Entidad o ampliación | Diseño en este documento | Implementación |
 |---|---|---|
-| services | Completo | Sprint actual |
-| orders: datos de visita y servicio | Completo | Sprint actual |
+| services | Completo | Tabla/modelo y consulta de activos implementados; administración posterior |
+| orders: datos de visita y servicio | Completo | Tabla/modelo, POST y consulta de activas implementados |
 | users | Completo | Etapa de autenticación |
 | orders.created_by_user_id | Definido | Etapa de autenticación |
 | order_status_changes | Completo | Etapa de seguimiento, después de autenticación |
 
 “Completo” se refiere al alcance conocido del proyecto. El contrato HTTP del sprint sigue descrito en api.md; las operaciones futuras requieren su propio contrato.
 
-Datos mínimos propuestos: placa y nombre del cliente obligatorios; teléfono opcional. No se solicita DNI, marca, modelo ni color. Cliente y teléfono son datos de esa visita, no identificadores únicos. Estas elecciones y las longitudes siguientes requieren confirmación durante la revisión; no se presentan como reglas ya aprobadas.
+Datos mínimos vigentes según [api.md](api.md): placa y nombre del cliente obligatorios; teléfono opcional. No se solicita DNI, marca, modelo ni color. Cliente y teléfono son datos de esa visita, no identificadores únicos. Formatos, longitudes y obligatoriedad ya están definidos en el contrato y aplicados por el validador actual.
 
-Base de compatibilidad propuesta: MySQL 8.0.16 o posterior, InnoDB y `utf8mb4`. Las restricciones CHECK deben aplicarse efectivamente. Espinoza registrará la versión concreta comprobada al implementar las migraciones.
+Base de compatibilidad vigente: MySQL 8.0.16 o posterior, InnoDB y `utf8mb4`, exigida por la comprobación de conexión. Las restricciones CHECK deben aplicarse efectivamente. La versión ejecutada y su evidencia se registran en la guía de comprobaciones.
 
 ## 2. Convenciones
 
 - Tablas y columnas en inglés y snake_case; API en camelCase.
 - Identificadores `INT UNSIGNED AUTO_INCREMENT`, positivos; JSON los representa como números enteros.
 - Importes en soles (PEN), `DECIMAL(10,2)`: entre 0.01 y 99999999.99. Nunca FLOAT. La API devuelve cadenas con dos decimales.
-- Fechas `DATETIME(3)`, almacenadas en UTC; aplicación y conexión configuradas en UTC. La API devuelve ISO 8601 con `Z`. La interfaz presenta la hora de Lima.
+- Fechas `DATETIME(3)`, almacenadas en UTC; aplicación y conexión configuradas en UTC. La API devuelve ISO 8601 con `Z`. Criterio de presentación: hora de Lima cuando la interfaz muestre fechas; la lista actual no las muestra.
 - `created_at` y `updated_at` se asignan en el servidor; Sequelize debe mapearlos explícitamente y actualizarlos. El navegador no los envía.
 - Los campos NOT NULL no admiten cadenas vacías cuando representan nombres o placa.
 
@@ -72,7 +72,7 @@ No existe una restricción única global sobre `plate`: impediría visitas poste
 
 ### Placa
 
-Alcance propuesto: placas ordinarias de seis caracteres; formatos especiales quedan fuera de este sprint. Es una política del proyecto, no una afirmación sobre todos los formatos legales de Perú.
+Alcance vigente del contrato: placas ordinarias de seis caracteres; formatos especiales quedan fuera de este sprint. Es una política del proyecto, no una afirmación sobre todos los formatos legales de Perú.
 
 1. Exigir string; recortar espacios exteriores y convertir a mayúsculas.
 2. Admitir seis caracteres contiguos o un único guion entre el tercero y cuarto: expresión de entrada `^[A-Z0-9]{3}-?[0-9]{3}$`.
@@ -99,7 +99,7 @@ El backend valida todo aunque React también lo haga; no truncar valores largos 
 
 Toda creación comienza en `waiting`. Este sprint no expone cambios de estado ni cancelación. Se reserva `cancelled` para la regla de negocio de cancelación; las órdenes finales permanecen en la base aunque no aparezcan en la consulta de activas.
 
-Fragmento de diseño para la migración de orders (no es una migración ejecutada):
+Extracto explicativo del diseño de orders; la fuente ejecutable es la [migración existente](../backend/src/db/migrations/20261026000002-create-orders.js). Este bloque no acredita su ejecución en una base concreta:
 
 ```sql
 CONSTRAINT chk_orders_status CHECK (
@@ -127,6 +127,8 @@ Flujo requerido del registro:
 5. Ante colisión del índice específico uq_orders_active_plate, hacer ROLLBACK y devolver 409 ACTIVE_ORDER_EXISTS. No convertir cualquier error de unicidad en ese mensaje.
 6. Otros fallos revierten toda la operación. Deadlocks/timeouts transitorios devuelven 503 TEMPORARILY_UNAVAILABLE si no se recuperan con reintentos internos acotados; no se informan como duplicados.
 
+Diferencia de implementación identificada: el servicio actual usa `transaction.LOCK.UPDATE` (bloqueo exclusivo), mientras este diseño especifica bloqueo compartido. Ambos conservan la copia durante la transacción, pero el exclusivo reduce concurrencia. Se reporta para la entrega de backend; este PR documental no cambia código ni reescribe esa decisión.
+
 Un SELECT previo para comprobar la placa puede mejorar el mensaje, pero no reemplaza el índice. No usar INSERT IGNORE, REPLACE ni upsert para crear órdenes: podrían ocultar el rechazo o modificar otra visita.
 
 Referencia técnica: [MySQL: índices de columnas generadas](https://dev.mysql.com/doc/refman/8.4/en/create-table-secondary-indexes.html) y [CREATE TABLE e índices UNIQUE](https://dev.mysql.com/doc/refman/8.4/en/create-table.html).
@@ -153,7 +155,7 @@ Desactivar una cuenta impide nuevas operaciones autenticadas y conserva su relac
 
 ## 8. Tabla order_status_changes
 
-Registro de auditoría de las transiciones reales, implementado después de usuarios. Cada fila corresponde a un cambio confirmado de una orden. La creación inicial en waiting se representa mediante orders.created_at y orders.created_by_user_id, sin inventar una transición desde un estado inexistente.
+Registro de auditoría de las transiciones reales, a implementar después de usuarios. Cada fila corresponderá a un cambio confirmado de una orden. La creación inicial en waiting se representa en el diseño mediante orders.created_at y el futuro orders.created_by_user_id, sin inventar una transición desde un estado inexistente.
 
 | Columna | Tipo MySQL | Obligatorio | Clave / valor / regla |
 |---|---|---|---|
@@ -167,7 +169,7 @@ Registro de auditoría de las transiciones reales, implementado después de usua
 
 Índices: PK id; índice (order_id, changed_at, id) para reconstruir la secuencia; índice changed_by_user_id para la FK. No incluir updated_at: los eventos confirmados son inmutables y no se editan ni eliminan mediante la aplicación. Ordenar por changed_at y luego id permite resolver empates de milisegundos.
 
-Transiciones propuestas, siguiendo la secuencia de estados del negocio:
+Diseño de referencia para la entrega de seguimiento, siguiendo la secuencia de estados del negocio (no son endpoints disponibles):
 
 | from_status | to_status permitido | Motivo |
 |---|---|---|
@@ -177,7 +179,7 @@ Transiciones propuestas, siguiendo la secuencia de estados del negocio:
 | waiting | cancelled | Obligatorio |
 | delivered o cancelled | Ninguno | Estado final |
 
-La prohibición de saltos y retrocesos es una propuesta para revisión del equipo. Implementar CHECK que admita únicamente esos cuatro pares y CHECK que exija reason no nulo y no vacío tras TRIM al cancelar, y NULL en los otros casos. Así se excluyen también estados desconocidos y transiciones al mismo estado.
+Detalle por especificar en la entrega de seguimiento: autorización de saltos y retrocesos. La tabla anterior conserva el diseño de referencia y no se declara una política de permisos aprobada. Antes de crear sus restricciones CHECK y endpoints debe fijarse esa política y la validación del motivo de cancelación; la regla vigente exige cancelar solo en espera con motivo. El módulo de seguimiento está incluido en el proyecto.
 
 La base valida la forma del evento; la coherencia entre ese evento y el estado actual exige lógica transaccional:
 
@@ -204,14 +206,14 @@ El listado de historial y los indicadores se obtienen de orders y, cuando corres
 
 ## 10. Implementación por etapas y migración
 
-1. **Sprint actual:** crear services y orders sin created_by_user_id. Mantener los tres endpoints de api.md. Solo se permite crear órdenes waiting; no se implementan cambios de estado.
+1. **Implementación actual:** services y orders sin created_by_user_id, tres endpoints de servicios/órdenes y health según api.md. Solo se crean órdenes waiting; todavía no hay operaciones de cambio de estado.
 2. **Autenticación:** crear users, añadir orders.created_by_user_id como nullable con índice y FK. Las órdenes existentes conservan NULL, que significa “creada antes de incorporar autenticación”; no asignar retrospectivamente un usuario ficticio. Desde la activación de autenticación, el backend exige un usuario real activo en toda nueva creación y lo toma de la sesión. La columna permanece nullable por los registros anteriores; la obligatoriedad para nuevas operaciones se aplica en el servicio de creación.
 3. **Seguimiento:** crear order_status_changes y habilitar la operación transaccional descrita. No reconstruir eventos anteriores sin evidencia. Las órdenes previas pueden comenzar a registrar sus cambios reales desde esta etapa.
 
 Al implementar cada etapa, actualizar el contrato HTTP y la guía de instalación con las rutas y migraciones efectivas. Antes de activar seguimiento debe estar disponible autenticación. La definición anticipada de las cuatro entidades no acredita que ya existan sus tablas ni endpoints.
 
-## 11. Comprobaciones y aprobación pendientes
+## 11. Validación y entregas posteriores
 
-La implementación debe demostrar: creación waiting; rechazo de servicio inactivo; conservación del nombre/precio tras editar el catálogo; normalización de placas equivalentes; dos solicitudes concurrentes con exactamente un 201 y un 409; cero filas parciales; reutilización de placa tras un estado final con datos de prueba, sin añadir endpoints fuera de alcance.
+La implementación debe demostrar creación waiting, rechazo de servicio inactivo, copia histórica, normalización, concurrencia con un 201 y un 409, ausencia de filas parciales y reutilización de placa tras un estado final. El estado real de esas comprobaciones y del recorrido visual se registra en [comprobaciones.md](comprobaciones.md); no queda pendiente aprobar la elección de MySQL ni los campos del contrato vigente.
 
 En las etapas posteriores se comprobará: correo duplicado rechazado tras normalización; usuario inactivo impedido de operar; órdenes anteriores con creador NULL sin atribuciones inventadas; cancelación solo desde waiting y con motivo; transición y evento confirmados o revertidos juntos; cambios concurrentes sin saltos ni eventos duplicados; conservación del historial al desactivar cuentas y servicios.
