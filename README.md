@@ -1,57 +1,34 @@
-# Grupo-4-AutoSpa
-
-Proyecto final del curso FULLSTACK DEVELOPER SOFTWARE
-
 # AutoSpa
 
-Aplicación web para gestionar la atención de vehículos en un autolavado. Su propósito es facilitar el registro de órdenes, el seguimiento del servicio y la consulta de las atenciones realizadas.
+Proyecto final del curso FULLSTACK DEVELOPER SOFTWARE: 2026-II-Senati/Grupo-4-AutoSpa.
 
-## Funcionalidades previstas
+AutoSpa es una aplicación web de gestión de órdenes de lavado. Cada visita genera una orden con un único servicio, conserva el nombre y precio acordados y evita dos órdenes activas para una placa normalizada.
 
-- Acceso del personal al sistema.
-- Gestión del catálogo de servicios y precios.
-- Registro de órdenes de atención.
-- Seguimiento de órdenes mediante los estados: En espera, En lavado, Listo para entregar y Entregado.
-- Cancelación de órdenes en espera, registrando el motivo.
-- Consulta del historial de atenciones.
-- Visualización de un resumen de operaciones por periodo.
+## Alcance definido
 
-## Tecnologías seleccionadas
+Incluye catálogo de servicios y precios, registro y listado de órdenes, seguimiento de estados, cancelación en espera con motivo, gestión de usuarios y acceso del personal, historial y resumen operativo por periodo. No incluye inventario, facturación, pagos ni aplicación móvil.
 
-| Parte del proyecto        | Tecnologías              |
-| ------------------------- | ------------------------ |
-| Frontend                  | React, Vite y JavaScript |
-| Backend                   | Node.js y Express        |
-| Base de datos             | MySQL                    |
-| Acceso a datos            | Sequelize                |
-| Ejecución en contenedores | Docker y Docker Compose  |
+Las [reglas](docs/reglas-negocio.md), el [contrato API](docs/api.md) y el [modelo](docs/modelo-datos.md) son las fuentes de detalle.
 
-## Arquitectura
+## Arquitectura y tecnologías
 
-El sistema utilizará una arquitectura cliente-servidor:
+Arquitectura cliente-servidor, JavaScript, React con Vite, Node.js con Express, MySQL con Sequelize y migraciones Umzug. El backend se organiza en rutas, controladores, servicios, repositorios y modelos.
 
-- El **frontend** presentará las pantallas y permitirá al personal realizar las operaciones.
-- El **backend** procesará las solicitudes, aplicará las reglas del negocio y gestionará el acceso a los datos.
-- La **base de datos** almacenará la información del sistema.
+Docker y Docker Compose forman parte de la ejecución reproducible del proyecto; sus archivos aún no están implementados.
 
-El backend se organizará por capas, utilizando rutas, controladores, servicios y modelos.
+## Implementación actual
 
-## Organización del repositorio
+- Formulario React y listado de órdenes activas conectados por defecto a la API real; demostración opcional.
+- GET /api/health, GET /api/services, POST /api/orders y GET /api/orders.
+- Conexión MySQL, modelos services/orders, migraciones, seeders y pruebas de backend.
+- Ejecución local con Vite/API separados o frontend compilado servido desde Express.
+- Catálogo administrable, historial, resumen, cambio de estados, cancelación y usuarios/acceso corresponden a entregas posteriores. Los enlaces del menú no acreditan esas funcionalidades.
+- Usuarios, autor de la orden y auditoría tienen diseño documentado; sus tablas y operaciones todavía no existen.
 
-El proyecto se organizará en los siguientes directorios, que se incorporarán conforme avance la implementación:
+## Organización y documentación
 
-- `frontend/`: interfaz web.
-- `backend/`: servidor y lógica del negocio.
-- `docs/`: documentación del proyecto.
+- `frontend/`: interfaz React.
+- `backend/`: API, persistencia y pruebas.
+- `docs/`: [reglas](docs/reglas-negocio.md), [decisiones técnicas](docs/decisiones-tecnicas-autospa.md), [modelo](docs/modelo-datos.md), [API](docs/api.md), [instalación](docs/instalacion.md) y [comprobaciones](docs/comprobaciones.md).
 
-## Documentación
-
-- [Reglas del negocio](docs/reglas-negocio.md)
-- [Decisiones técnicas](docs/decisiones-tecnicas-autospa.md)
-- [Instalacion](docs/instalacion.md)
-
-## Estado del proyecto
-
-Proyecto en desarrollo. Actualmente se está preparando la base técnica para ejecutar el frontend y el backend y comprobar su comunicación.
-
-El diseño detallado de la base de datos se encuentra pendiente.
+Sigue la guía de instalación para ejecutar el proyecto. La guía de comprobaciones distingue resultados esperados, pruebas API, recorrido visual y evidencia. Que una función exista no significa que esté validada.
