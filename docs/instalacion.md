@@ -5,9 +5,9 @@ Los resultados reales se mantienen en [comprobaciones](comprobaciones.md). Una i
 ## 1. Requisitos y clon
 
 - Git, Node.js 24.22.1, npm 11.19.1 y navegador.
-- **MySQL Server instalado y ejecutándose**, 8.0.16 o posterior, InnoDB. Workbench es un cliente gráfico; no sustituye al servidor. MariaDB no está admitido.
+- **MySQL Server ejecutándose**, 8.0.16 o posterior, InnoDB: instalado localmente o levantado con Docker Compose ([sección 8](#8-base-de-datos-con-docker-compose)). Workbench es un cliente gráfico; no sustituye al servidor. MariaDB no está admitido.
 - Usuario MySQL con permisos para una base de desarrollo/pruebas. Crear una base requiere permiso o intervención del administrador.
-- Docker/Compose están en el alcance; sus archivos aún no existen.
+- Docker Compose disponible solo para MySQL (`compose.yaml` en la raíz). Backend y frontend siguen ejecutándose con npm.
 
 ```powershell
 node -v
@@ -125,3 +125,66 @@ Desde backend/: npm test usa mocks; npm run test:mysql crea y conserva un esquem
 6. Otro integrante debe repetir y confirmar su resultado. Esa reproducción queda **Pendiente** hasta su confirmación; Castillo revisa el ticket.
 
 El [registro](comprobaciones.md#4-registro-de-resultados) informa qué se ejecutó en esta revisión.
+
+## 8. Base de datos con Docker Compose
+
+Alternativa a instalar MySQL: `compose.yaml` levanta **solo MySQL 8.4.9** (imagen `mysql:8.4.9`) con un volumen con nombre. Backend y frontend siguen con npm (secciones 4 y 5).
+
+**Requisitos:** Docker Desktop iniciado («Engine running»; en Windows requiere WSL 2).
+
+```powershell
+docker --version
+docker compose version
+```
+
+**Dos archivos de entorno, no confundirlos.** Ninguno se sube al repositorio:
+
+| Archivo | Lo lee | Contenido |
+| --- | --- | --- |
+| `.env` (raíz) | Docker Compose | `MYSQL_PORT`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` |
+| `backend/.env` | Backend | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
+
+Usuario y contraseña de la aplicación deben coincidir en ambos. El backend nunca usa `root`.
+
+**Arrancar.** Desde la raíz, crear el entorno solo si no existe, cambiar las contraseñas y levantar el servicio:
+
+```powershell
+if (-not (Test-Path -LiteralPath .env)) {
+    Copy-Item -LiteralPath .env.example -Destination .env
+}
+docker compose up -d
+```
+
+El primer arranque crea la base `MYSQL_DATABASE` y el usuario `MYSQL_USER` con permisos solo sobre ella. Publica el puerto `127.0.0.1:3307` (configurable con `MYSQL_PORT`) para no interferir con un MySQL local en 3306.
+
+**Verificar disponibilidad.**
+
+```powershell
+docker compose ps
+docker compose logs mysql
+```
+
+`STATUS` debe indicar `healthy`: el healthcheck (`mysqladmin ping`) confirma que MySQL responde, **no** las credenciales de la aplicación. Esas se confirman con `npm run db:check` desde el backend.
+
+**Conectar el backend.** En `backend/.env`: `DB_HOST=127.0.0.1`, `DB_PORT=3307` (o el valor de `MYSQL_PORT`), y `DB_NAME`, `DB_USER` y `DB_PASSWORD` iguales a los del `.env` de la raíz. Desde backend/:
+
+```powershell
+npm run db:check
+npm run db:migrate
+npm run db:seed
+npm run db:status
+```
+
+No hace falta `db:create`: el contenedor ya crea la base. Si una migración o seeder ya estaba aplicado, la salida no lo vuelve a listar.
+
+**Detener y conservar datos.**
+
+```powershell
+docker compose stop    # detiene MySQL; conserva datos
+docker compose start   # lo reanuda con las mismas tablas y datos
+docker compose down    # elimina el contenedor; el volumen se conserva
+```
+
+> ⚠️ `docker compose down -v` **elimina el volumen y todos sus datos**. Usarlo solo para empezar con una base vacía; después repetir migraciones y seeders.
+
+**Problemas frecuentes.** Puerto 3307 ocupado: cambiar `MYSQL_PORT` y el mismo valor en `DB_PORT`, y repetir `docker compose up -d`. Credenciales rechazadas: la contraseña de `backend/.env` no coincide con `MYSQL_PASSWORD`; el contenedor conserva la del primer arranque. `docker` sin respuesta: abrir Docker Desktop y esperar «Engine running».
