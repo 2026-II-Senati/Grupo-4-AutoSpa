@@ -252,8 +252,10 @@ docker compose run --rm app npm run db:migrate   # si llegaron migraciones nueva
 ### 9.4 Comprobar registro y persistencia
 
 1. En http://localhost:8080 registrar una orden y recargar la página: debe seguir en el listado.
-2. `docker compose stop` y luego `docker compose start`; esperar `healthy` con `docker compose ps`.
-3. Recargar la página: la orden sigue guardada.
+2. **Detener y reanudar:** `docker compose stop` y luego `docker compose start`. Esperar `healthy` con `docker compose ps` y recargar: la orden sigue guardada.
+3. **Recrear los contenedores:** `docker compose down` (elimina contenedores y red, conserva el volumen) y luego `docker compose up -d`. Esperar `healthy` con `docker compose ps` y recargar: la orden sigue guardada, porque los datos están en el volumen y no en el contenedor.
+
+Para comprobar la preparación **desde una base vacía**, borrar antes el volumen de desarrollo con `docker compose down -v` (elimina todos los datos), repetir la [preparación inicial](#91-preparación-inicial-una-sola-vez) y confirmar que `db:migrate` aplica 2 migraciones y `db:seed` carga 2 seeders.
 
 ### 9.5 Variables adicionales y seguridad
 
