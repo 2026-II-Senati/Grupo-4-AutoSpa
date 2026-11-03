@@ -39,6 +39,10 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
     const response = await fetch(base + path);
     return { status: response.status, body: await response.json() };
   }
+  async function patch(path, body) {
+    const response = await fetch(base + path, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return { status: response.status, body: await response.json() };
+  }
 
   await t.test('services: projection, active filter, sort and decimal string', async () => {
     Service.findAll = async (options) => {
@@ -75,6 +79,12 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
     }
     assert.deepEqual(await get('/health'), {
       status: 200, body: { message: 'Backend de AutoSpa disponible' },
+    });
+  });
+  await t.test('status changes reject requests without an authenticated user', async () => {
+    assert.deepEqual(await patch('/orders/1/status', { expectedStatus: 'waiting', status: 'washing' }), {
+      status: 401,
+      body: { error: { code: 'UNAUTHORIZED', message: 'Inicia sesión para realizar esta operación.', details: [] } },
     });
   });
   await t.test('temporary and unexpected errors have exact contract (injected errors)', async () => {

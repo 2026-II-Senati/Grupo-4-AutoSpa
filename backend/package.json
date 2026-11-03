@@ -18,7 +18,7 @@
     "db:seed:undo": "node scripts/db.js seed:undo",
     "db:reset": "node scripts/db.js reset",
     "db:status": "node scripts/db.js status",
-    "test": "node --test test/queries.test.js",
+    "test": "node --test test/queries.test.js test/order-status.test.js",
     "test:mysql": "node --test test/mysql.integration.js"
   },
   "dependencies": {

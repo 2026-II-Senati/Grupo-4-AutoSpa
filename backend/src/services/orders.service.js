@@ -10,6 +10,8 @@ import {
   Service,
   Order,
 } from '../models/index.js';
+import { findOrderForUpdate, saveStatusChange } from '../repositories/orders.repository.js';
+import { isAllowedOrderTransition } from '../validators/order-status.validator.js';
 
 function businessError(status, code, message, field) {
   const error = new Error(message);
@@ -51,7 +53,7 @@ export function isTemporaryDatabaseError(error) {
   );
 }
 
-export async function registerOrder(data) {
+export async function registerOrder(data, userId) {
   let order;
 
   try {
@@ -79,6 +81,7 @@ export async function registerOrder(data) {
           serviceName: service.name,
           servicePrice: service.price,
           status: 'waiting',
+          createdByUserId: userId,
         },
         { transaction },
       );
@@ -96,6 +99,18 @@ export async function registerOrder(data) {
     throw error;
   }
 
+  return presentOrder(order);
+}
+
+export async function updateOrderStatus(id, data, userId) {
+  const order = await sequelize.transaction(async (transaction) => {
+    const current = await findOrderForUpdate(id, transaction);
+    if (!current) throw businessError(404, 'ORDER_NOT_FOUND', 'La orden no existe.', 'id');
+    if (current.status !== data.expectedStatus) throw businessError(409, 'ORDER_STATUS_CONFLICT', 'El estado actual de la orden no coincide con expectedStatus.', 'expectedStatus');
+    if (!isAllowedOrderTransition(current.status, data.status)) throw businessError(409, 'INVALID_STATUS_TRANSITION', 'La transición solicitada no está permitida.', 'status');
+    const changedAt = new Date();
+    return saveStatusChange(current, { fromStatus: current.status, status: data.status, userId, reason: data.reason, changedAt }, transaction);
+  });
   return presentOrder(order);
 }
 

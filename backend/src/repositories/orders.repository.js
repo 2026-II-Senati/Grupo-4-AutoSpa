@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Order, ACTIVE_ORDER_STATUSES } from '../models/index.js';
+import { Order, OrderStatusChange, ACTIVE_ORDER_STATUSES } from '../models/index.js';
 import { presentOrder } from '../services/order-response.js';
 
 export async function findActiveOrders() {
@@ -22,4 +22,16 @@ export async function findActiveOrders() {
   });
 
   return orders.map(presentOrder);
+}
+
+export function findOrderForUpdate(id, transaction) {
+  return Order.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
+}
+
+export async function saveStatusChange(order, { fromStatus, status, userId, reason, changedAt }, transaction) {
+  order.status = status;
+  order.updatedAt = changedAt;
+  await order.save({ transaction, fields: ['status', 'updatedAt'] });
+  await OrderStatusChange.create({ orderId: order.id, fromStatus, toStatus: status, changedByUserId: userId, changedAt, reason }, { transaction });
+  return order;
 }
