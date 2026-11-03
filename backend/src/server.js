@@ -6,6 +6,7 @@ import { config } from './config/env.js';
 import { verifyDatabaseConnection } from './db/connection.js';
 import ordersRouter from './routes/orders.routes.js';
 import servicesRouter from './routes/services.routes.js';
+import servicesAdminRouter from './routes/services.admin.routes.js';
 import { isTemporaryDatabaseError } from './services/orders.service.js';
 
 const app = express();
@@ -45,6 +46,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/orders', ordersRouter);
 app.use('/api/services', servicesRouter);
+app.use('/api/services', servicesAdminRouter);
 
 app.use(express.static(frontendDistPath));
 app.get(/.*/, (req, res, next) => {
@@ -93,6 +95,16 @@ app.use((err, req, res, next) => {
         details: err.details,
       },
     });
+  }
+
+  if (err.httpStatus === 401 && err.apiCode === 'UNAUTHORIZED') {
+    return res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'La sesión no es válida.', details: [] } });
+  }
+  if (err.httpStatus === 404 && err.apiCode === 'SERVICE_NOT_FOUND') {
+    return res.status(404).json({ error: { code: 'SERVICE_NOT_FOUND', message: err.message, details: [] } });
+  }
+  if (err.httpStatus === 422 && err.apiCode === 'VALIDATION_ERROR') {
+    return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: err.message, details: err.details } });
   }
 
   if (isTemporaryDatabaseError(err)) {
