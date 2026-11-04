@@ -9,7 +9,7 @@
 - details siempre es una lista de objetos field/message; vacía cuando el error no corresponde a un campo.
 - La interfaz decide el comportamiento por HTTP y code; message se muestra al usuario.
 - Las consultas devuelven todos los registros del alcance inicial, sin paginación ni filtros opcionales. No truncar silenciosamente. Paginación e historial se añadirán mediante otro contrato.
-- No se implementa autenticación en este sprint; estas rutas se destinan al entorno de desarrollo. El acceso del personal se abordará en su ticket.
+- El personal inicia sesión mediante una cookie de sesión `HttpOnly`. Los detalles y ejemplos están en [Autenticación](modulos/autenticacion.md).
 - `GET /api/health` conserva su respuesta actual HTTP 200: `{"message":"Backend de AutoSpa disponible"}`, sin envolver en data.
 
 ## 2. GET /api/services
@@ -34,7 +34,13 @@ Campos: id integer; name string; description string o null; price string decimal
 Sin servicios: HTTP 200, `{"data":[]}`. Los inactivos no aparecen; no hace falta exponer isActive en esta consulta.
 Los ejemplos son ficticios y no afirman que esos servicios existan en el repositorio.
 
-## 3. POST /api/orders
+## 3. Autenticación
+
+Las rutas `POST /api/auth/login`, `GET /api/auth/me` y `POST /api/auth/logout` administran la sesión del personal. Login devuelve `data` con `id`, `name` y `email`, y establece una cookie `HttpOnly`. `/me` requiere sesión; logout responde `{"data":null}` y la cierra. Los contratos, errores y comandos para usar cookie jar se describen en [docs/modulos/autenticacion.md](modulos/autenticacion.md).
+
+`GET /api/orders` requiere una sesión válida. Sin sesión responde HTTP 401. `POST /api/orders` y `GET /api/services` conservan su acceso actual.
+
+## 4. POST /api/orders
 
 Crea una visita con un único servicio. Solicitud:
 
@@ -89,9 +95,10 @@ El objeto de orden de esta respuesta es exactamente el mismo utilizado por GET /
 customerPhone puede ser null; el resto de los campos del objeto no son nulos.
 Los precios y nombres corresponden a lo conservado en la orden aunque el catálogo cambie.
 
-## 4. GET /api/orders
+## 5. GET /api/orders
 
 Devuelve únicamente órdenes activas: waiting, washing y ready. Orden estable por created_at ASC y, ante empate, id ASC (atención de la más antigua primero). No recibe cuerpo ni parámetros.
+Requiere sesión autenticada; sin ella devuelve HTTP 401.
 HTTP 200:
 
 ```json
@@ -117,7 +124,7 @@ Sin órdenes activas: HTTP 200, `{"data":[]}`. delivered y cancelled permanecen 
 Etiquetas: waiting = En espera; washing = En lavado; ready = Listo para entregar.
 El cambio de estado, cancelación y consulta de historial están fuera del contrato actual.
 
-## 5. Errores
+## 6. Errores
 
 | HTTP | code                    | message exacto                                                      | Cuándo                                                               |
 | ---- | ----------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------- |
@@ -184,7 +191,7 @@ Ejemplo HTTP 409:
 Un fallo de red sin respuesta HTTP no tiene este JSON; React muestra “No se pudo conectar con el backend. Verifica que esté disponible.” y conserva los datos ingresados.
 Deshabilitar el botón durante el envío evita dobles clics; la garantía ante concurrencia está en MySQL. No se promete idempotencia de POST: si se pierde una respuesta, consultar las órdenes antes de reenviar automáticamente.
 
-## 6. Integración y comprobaciones previstas
+## 7. Integración y comprobaciones previstas
 
 | Caso                                                           | Resultado esperado                                           |
 | -------------------------------------------------------------- | ------------------------------------------------------------ |

@@ -14,7 +14,7 @@ Las [reglas](docs/reglas-negocio.md), el [contrato API](docs/api.md) y el [model
 
 Arquitectura cliente-servidor, JavaScript, React con Vite, Node.js con Express, MySQL con Sequelize y migraciones Umzug. El backend se organiza en rutas, controladores, servicios, repositorios y modelos.
 
-Docker y Docker Compose forman parte de la ejecución reproducible del proyecto; sus archivos aún no están implementados.
+Docker y Docker Compose permiten ejecutar AutoSpa completo (MySQL + aplicación) sin Node.js ni MySQL locales, o solo MySQL junto a la modalidad npm. Ver la [guía de instalación](docs/instalacion.md#9-autospa-completo-con-docker-compose).
 
 ## Implementación actual
 
@@ -22,6 +22,7 @@ Docker y Docker Compose forman parte de la ejecución reproducible del proyecto;
 - GET /api/health, GET /api/services, POST /api/orders y GET /api/orders.
 - Conexión MySQL, modelos services/orders, migraciones, seeders y pruebas de backend.
 - Ejecución local con Vite/API separados o frontend compilado servido desde Express.
+- Ejecución con Docker Compose: solo MySQL, o MySQL y la aplicación en una sola URL (`http://localhost:8080`).
 - Catálogo administrable, historial, resumen, cambio de estados, cancelación y usuarios/acceso corresponden a entregas posteriores. Los enlaces del menú no acreditan esas funcionalidades.
 - Usuarios, autor de la orden y auditoría tienen diseño documentado; sus tablas y operaciones todavía no existen.
 
