@@ -1,10 +1,30 @@
+
 const statusLabels = { waiting: 'En espera', washing: 'En lavado', ready: 'Listo para entregar', delivered: 'Entregado', cancelled: 'Cancelado' };
 const statusLabel = (status) => statusLabels[String(status || '').toLowerCase()] || status || 'En espera';
 
 export function OrdersList({ orders, loading, error, onRetry }) {
   return (
     <section className="orders-list-card" aria-labelledby="orders-list-title">
-      <div className="card-heading list-heading"><div><span className="section-kicker">SEGUIMIENTO</span><h2 id="orders-list-title">Órdenes activas</h2></div><span className="orders-count">{orders.length} {orders.length === 1 ? 'orden' : 'órdenes'}</span></div>
+      <div className="card-heading list-heading">
+        <div>
+          <span className="section-kicker">SEGUIMIENTO</span>
+          <h2 id="orders-list-title">Órdenes activas</h2>
+        </div>
+        <div className="orders-list-actions">
+          <span className="orders-count">
+            {orders.length} {orders.length === 1 ? 'orden' : 'órdenes'}
+          </span>
+          <button
+            type="button"
+            className="refresh-orders-button"
+            onClick={onRetry}
+            disabled={loading}
+          >
+            {loading ? 'Actualizando...' : 'Actualizar'}
+          </button>
+        </div>
+      </div>
+
       {loading ? <div className="list-state" role="status"><span className="spinner" /> Cargando órdenes…</div>
         : error ? <div className="list-state error-state" role="alert"><span>{error}</span><button type="button" className="text-button" onClick={onRetry}>Volver a intentar</button></div>
           : orders.length === 0 ? <div className="list-state empty-state"><span className="empty-icon" aria-hidden="true">▤</span><strong>Aún no hay órdenes activas</strong><span>Las órdenes registradas aparecerán aquí.</span></div>
