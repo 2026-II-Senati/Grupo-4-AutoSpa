@@ -1,5 +1,6 @@
 import * as createServices from './20261026000001-create-services.js';
 import * as createOrders from './20261026000002-create-orders.js';
+import * as createUsers from './20261103000001-create-users.js';
 import * as addOrderCreator from './20261103000001-add-orders-created-by-user.js';
 import * as createOrderStatusChanges from './20261103000002-create-order-status-changes.js';
 
@@ -8,6 +9,7 @@ import * as createOrderStatusChanges from './20261103000002-create-order-status-
 export const migrations = [
   { name: '20261026000001-create-services', ...createServices },
   { name: '20261026000002-create-orders', ...createOrders },
+  { name: '20261103000001-create-users', ...createUsers },
   { name: '20261103000001-add-orders-created-by-user', ...addOrderCreator },
   { name: '20261103000002-create-order-status-changes', ...createOrderStatusChanges },
 ];

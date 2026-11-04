@@ -4,7 +4,7 @@
 
 ## 1. Alcance definido e implementación
 
-MySQL es el motor confirmado y Sequelize el acceso a datos implementado. El código actual tiene conexión, migraciones y modelos de services/orders, registro y consultas API y formulario/listado React. Usuarios y auditoría tienen diseño para entregas posteriores; no existen aún sus tablas ni operaciones. La validación ejecutada se mantiene en [comprobaciones.md](comprobaciones.md).
+MySQL es el motor confirmado y Sequelize el acceso a datos implementado. El código actual tiene conexión, migraciones y modelos de services/orders/users, registro y consultas API, autenticación de personal y formulario/listado React. La auditoría de órdenes tiene diseño para una entrega posterior. La validación ejecutada se mantiene en [comprobaciones.md](comprobaciones.md).
 
 El diseño comprende cuatro entidades: `users`, `services`, `orders` y `order_status_changes`. Una orden pertenece a un servicio y un servicio puede aparecer en muchas órdenes. Cada visita genera una orden nueva. Los datos de cliente y vehículo se conservan en la orden; el alcance actual no requiere catálogos independientes de clientes o vehículos.
 
@@ -12,8 +12,8 @@ El diseño comprende cuatro entidades: `users`, `services`, `orders` y `order_st
 |---|---|---|
 | services | Completo | Tabla/modelo y consulta de activos implementados; administración posterior |
 | orders: datos de visita y servicio | Completo | Tabla/modelo, POST y consulta de activas implementados |
-| users | Completo | Etapa de autenticación |
-| orders.created_by_user_id | Definido | Etapa de autenticación |
+| users | Completo | Tabla/modelo y autenticación de personal implementados |
+| orders.created_by_user_id | Definido | Etapa posterior de órdenes |
 | order_status_changes | Completo | Etapa de seguimiento, después de autenticación |
 
 “Completo” se refiere al alcance conocido del proyecto. El contrato HTTP del sprint sigue descrito en api.md; las operaciones futuras requieren su propio contrato.
@@ -135,23 +135,23 @@ Referencia técnica: [MySQL: índices de columnas generadas](https://dev.mysql.c
 
 ## 7. Tabla users
 
-Representa al personal que accede al sistema. Se implementará al incorporar autenticación.
+Representa al personal que accede al sistema mediante autenticación por sesión.
 
 | Columna | Tipo MySQL | Obligatorio | Clave / valor / regla |
 |---|---|---|---|
 | id | INT UNSIGNED | Sí | PK, AUTO_INCREMENT |
 | name | VARCHAR(100) | Sí | Trim, 1–100 caracteres Unicode |
 | email | VARCHAR(254), utf8mb4, utf8mb4_bin | Sí | Correo normalizado; UNIQUE uq_users_email |
-| password_hash | VARCHAR(255) | Sí | Resultado codificado del algoritmo de hash de contraseñas elegido en el ticket de autenticación |
+| password_hash | VARCHAR(255) | Sí | Hash scrypt con salt aleatorio (N=32768, r=8, p=1) |
 | is_active | BOOLEAN | Sí | DEFAULT TRUE; CHECK (is_active IN (0,1)) |
 | created_at | DATETIME(3) | Sí | Creación UTC, asignada por el servidor |
 | updated_at | DATETIME(3) | Sí | Última modificación UTC |
 
-Índices: PK id y UNIQUE uq_users_email(email). Política propuesta de acceso: trim y minúsculas para el correo tanto al registrar como al iniciar sesión; validar formato y longitud antes de persistir. El índice compara el valor normalizado. Un correo desactivado continúa reservado a su cuenta.
+Índices: PK id y UNIQUE uq_users_email(email). El procedimiento local de creación y el login recortan y convierten el correo a minúsculas; se valida formato y longitud antes de persistir. El índice compara el valor normalizado. Un correo desactivado continúa reservado a su cuenta.
 
-Nunca almacenar contraseñas en texto claro ni devolver password_hash en la API. El ticket de autenticación debe concretar el algoritmo, sus parámetros y el mecanismo de sesión. No se añaden roles porque las reglas actuales no distinguen permisos entre perfiles; si se acuerdan, requieren una ampliación explícita.
+Nunca almacenar contraseñas en texto claro ni devolver password_hash en la API. La sesión usa una cookie HttpOnly firmada con un secreto de entorno. No se añaden roles porque las reglas actuales no distinguen permisos entre perfiles; si se acuerdan, requieren una ampliación explícita.
 
-Desactivar una cuenta impide nuevas operaciones autenticadas y conserva su relación con órdenes y eventos. Las cuentas referenciadas no se eliminan físicamente. La política de provisión de cuentas y sesiones no está implementada por este diseño.
+Desactivar una cuenta impide nuevas operaciones autenticadas y conserva su relación con órdenes y eventos. Las cuentas referenciadas no se eliminan físicamente. Las cuentas se crean mediante un procedimiento local; no hay registro público.
 
 ## 8. Tabla order_status_changes
 
@@ -207,7 +207,7 @@ El listado de historial y los indicadores se obtienen de orders y, cuando corres
 ## 10. Implementación por etapas y migración
 
 1. **Implementación actual:** services y orders sin created_by_user_id, tres endpoints de servicios/órdenes y health según api.md. Solo se crean órdenes waiting; todavía no hay operaciones de cambio de estado.
-2. **Autenticación:** crear users, añadir orders.created_by_user_id como nullable con índice y FK. Las órdenes existentes conservan NULL, que significa “creada antes de incorporar autenticación”; no asignar retrospectivamente un usuario ficticio. Desde la activación de autenticación, el backend exige un usuario real activo en toda nueva creación y lo toma de la sesión. La columna permanece nullable por los registros anteriores; la obligatoriedad para nuevas operaciones se aplica en el servicio de creación.
+2. **Autenticación:** users, login, consulta/cierre de sesión y middleware requireAuth implementados. La columna orders.created_by_user_id aún requiere una migración posterior; al incorporarla será nullable para órdenes existentes, que conservan NULL sin asignar un usuario ficticio.
 3. **Seguimiento:** crear order_status_changes y habilitar la operación transaccional descrita. No reconstruir eventos anteriores sin evidencia. Las órdenes previas pueden comenzar a registrar sus cambios reales desde esta etapa.
 
 Al implementar cada etapa, actualizar el contrato HTTP y la guía de instalación con las rutas y migraciones efectivas. Antes de activar seguimiento debe estar disponible autenticación. La definición anticipada de las cuatro entidades no acredita que ya existan sus tablas ni endpoints.

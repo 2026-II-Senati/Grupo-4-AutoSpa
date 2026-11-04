@@ -1,7 +1,8 @@
-# Base de datos MySQL de AutoSpa para desarrollo local.
-# Solo la base de datos corre en Docker; el backend y el frontend siguen con npm.
+# AutoSpa con Docker Compose.
+# - mysql: base de datos (siempre).
+# - app:   frontend React compilado + API Express en una sola URL.
 # Configuración: copia .env.example como .env en esta misma carpeta (raíz del repositorio).
-# Guía: docs/instalacion.md, sección "Base de datos con Docker".
+# Guía: docs/instalacion.md, secciones 8 (solo MySQL) y 9 (aplicación completa).
 name: autospa
 
 services:
@@ -32,6 +33,35 @@ services:
       retries: 10
       start_period: 30s
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: autospa-app:local
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        # La aplicación arranca solo cuando MySQL responde.
+        condition: service_healthy
+    # Variables adicionales de la aplicación (por ejemplo, las de autenticación cuando se integre).
+    # Archivo opcional .env.app en la raíz; no se sube al repositorio.
+    env_file:
+      - path: .env.app
+        required: false
+    environment:
+      PORT: "3001"
+      # Conexión interna entre contenedores: nombre del servicio y puerto interno.
+      # El 3307 publicado es solo para acceder desde la computadora.
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${MYSQL_DATABASE:-autospa}
+      DB_USER: ${MYSQL_USER:-autospa_app}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD en el .env de la raíz}
+      DB_LOGGING: "false"
+    ports:
+      # Una sola URL para React y /api. Por defecto 8080, para no chocar con el backend local en 3001.
+      - "127.0.0.1:${APP_PORT:-8080}:3001"
+
 volumes:
-  # Volumen con nombre: conserva tablas y datos al detener y volver a iniciar el contenedor.
+  # Volumen con nombre: conserva tablas y datos al detener y volver a iniciar los contenedores.
   mysql-data:
