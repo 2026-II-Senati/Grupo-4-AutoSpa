@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { ActiveOrdersCounter } from './ActiveOrdersCounter.jsx';
 import { OrderForm } from './OrderForm.jsx';
 import { OrdersList } from './OrdersList.jsx';
 import { getApiErrorMessage, getOrders, getServices, isUsingMockApi } from './ordersApi.js';
@@ -29,7 +30,7 @@ export function OrdersPage() {
   }, [refreshOrders]);
 
   return <section className="orders-page" aria-labelledby="orders-page-title">
-    <div className="orders-page-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> GESTIÓN DE ATENCIONES</div><h1 id="orders-page-title">Órdenes <span>activas</span></h1><p>Registra una nueva atención y consulta su estado.</p></div></div>
+    <div className="orders-page-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> GESTIÓN DE ATENCIONES</div><h1 id="orders-page-title">Órdenes <span>activas</span></h1><p>Registra una nueva atención y consulta su estado.</p></div><ActiveOrdersCounter orders={orders} loading={loadingOrders} error={ordersError} /></div>
     {isUsingMockApi() && <p className="prototype-notice"><strong>Modo demostración:</strong> servicios de ejemplo; las órdenes se guardan en este navegador, no en la base de datos.</p>}
     <div className="orders-layout"><OrderForm services={services} loadingServices={loadingServices} servicesError={servicesError} onCreated={refreshOrders} /><OrdersList orders={orders} loading={loadingOrders} error={ordersError} onRetry={refreshOrders} /></div>
   </section>;
