@@ -19,7 +19,7 @@
     "db:reset": "node scripts/db.js reset",
     "user:create": "node scripts/create-user.js",
     "db:status": "node scripts/db.js status",
-    "test": "node --test test/queries.test.js",
+    "test": "node --test test/queries.test.js test/order-status.test.js",
     "test:mysql": "node --test test/mysql.integration.js"
   },
   "dependencies": {

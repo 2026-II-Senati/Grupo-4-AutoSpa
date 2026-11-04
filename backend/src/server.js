@@ -118,6 +118,10 @@ app.use((err, req, res, next) => {
     });
   }
 
+  if ([404, 409].includes(err.httpStatus) && ['ORDER_NOT_FOUND', 'ORDER_STATUS_CONFLICT', 'INVALID_STATUS_TRANSITION'].includes(err.apiCode)) {
+    return res.status(err.httpStatus).json({ error: { code: err.apiCode, message: err.message, details: err.details } });
+  }
+
   if (isTemporaryDatabaseError(err)) {
     return res.status(503).json({
       error: {
