@@ -46,9 +46,12 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
     return { status: response.status, body: await response.json() };
   }
   async function patch(path, body) {
-    const response = await fetch(base + path, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const headers = { 'Content-Type': 'application/json' };
+    if (cookie) headers.cookie = cookie;
+    const response = await fetch(base + path, { method: 'PATCH', headers, body: JSON.stringify(body) });
     return { status: response.status, body: await response.json() };
   }
+
   async function post(path, body, includeCookie = false) {
     const headers = { 'content-type': 'application/json' };
     if (includeCookie && cookie) headers.cookie = cookie;
@@ -56,6 +59,10 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
   }
 
   await t.test('authentication: invalid credentials, login, me, protected route and logout', async () => {
+    const unauthenticatedOrder = await post('/orders', {});
+    assert.equal(unauthenticatedOrder.status, 401);
+    assert.equal((await unauthenticatedOrder.json()).error.code, 'AUTHENTICATION_REQUIRED');
+
     const password = ' secret ';
     const passwordHash = await hashPassword(password);
     User.findOne = async (options) => {
@@ -161,10 +168,13 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
     });
   });
   await t.test('status changes reject requests without an authenticated user', async () => {
+    const authenticatedCookie = cookie;
+    cookie = undefined;
     assert.deepEqual(await patch('/orders/1/status', { expectedStatus: 'waiting', status: 'washing' }), {
       status: 401,
       body: { error: { code: 'AUTHENTICATION_REQUIRED', message: 'Inicia sesión para continuar.', details: [] } },
     });
+    cookie = authenticatedCookie;
   });
   await t.test('temporary and unexpected errors have exact contract (injected errors)', async () => {
     for (const [code, status, apiCode, message] of [
