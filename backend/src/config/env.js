@@ -26,6 +26,8 @@ if (!Number.isInteger(dbPort) || dbPort <= 0) {
 
 export const config = {
   port: Number(process.env.PORT ?? 3001),
+  sessionSecret: process.env.SESSION_SECRET,
+  isProduction: process.env.NODE_ENV === 'production',
   db: {
     host: process.env.DB_HOST,
     port: dbPort,

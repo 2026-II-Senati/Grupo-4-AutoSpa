@@ -17,6 +17,7 @@ export const Order = sequelize.define(
     serviceId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
     serviceName: { type: DataTypes.STRING(100), allowNull: false },
     servicePrice: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    createdByUserId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
     status: {
       type: DataTypes.STRING(20),
       allowNull: false,

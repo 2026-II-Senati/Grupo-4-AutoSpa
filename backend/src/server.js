@@ -1,12 +1,20 @@
 import express from 'express';
+import session from 'express-session';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { config } from './config/env.js';
 import { verifyDatabaseConnection } from './db/connection.js';
+import authRouter from './routes/auth.routes.js';
 import ordersRouter from './routes/orders.routes.js';
 import servicesRouter from './routes/services.routes.js';
+import { SESSION_COOKIE_NAME } from './session.js';
 import { isTemporaryDatabaseError } from './services/orders.service.js';
+
+if (!config.sessionSecret || config.sessionSecret.length < 32) {
+  console.error('SESSION_SECRET debe tener al menos 32 caracteres.');
+  process.exit(1);
+}
 
 const app = express();
 const port = config.port;
@@ -36,6 +44,20 @@ app.use('/api/orders', (req, res, next) => {
 });
 
 app.use(express.json({ strict: false }));
+app.use(
+  session({
+    name: SESSION_COOKIE_NAME,
+    secret: config.sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: config.isProduction,
+      maxAge: 8 * 60 * 60 * 1000,
+    },
+  }),
+);
 
 app.get('/api/health', (_req, res) => {
   res.status(200).json({
@@ -43,6 +65,7 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/services', servicesRouter);
 
@@ -93,6 +116,10 @@ app.use((err, req, res, next) => {
         details: err.details,
       },
     });
+  }
+
+  if ([404, 409].includes(err.httpStatus) && ['ORDER_NOT_FOUND', 'ORDER_STATUS_CONFLICT', 'INVALID_STATUS_TRANSITION'].includes(err.apiCode)) {
+    return res.status(err.httpStatus).json({ error: { code: err.apiCode, message: err.message, details: err.details } });
   }
 
   if (isTemporaryDatabaseError(err)) {

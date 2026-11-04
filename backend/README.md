@@ -69,7 +69,7 @@ En la terminal donde ejecutaste `npm start`, pulsa `Ctrl+C`.
 
 ## Base de datos
 
-El backend usa **MySQL** con **Sequelize** (modelos en `src/models/`) y **Umzug** para ejecutar migraciones y datos iniciales. El diseño de las tablas está en [`docs/modelo-datos.md`](../docs/modelo-datos.md). En este sprint se crean las tablas `services` y `orders`.
+El backend usa **MySQL** con **Sequelize** (modelos en `src/models/`) y **Umzug** para ejecutar migraciones y datos iniciales. El diseño de las tablas está en [`docs/modelo-datos.md`](../docs/modelo-datos.md). Las migraciones crean `services`, `orders` y `users`; la autenticación del personal se describe en [Autenticación](../docs/modulos/autenticacion.md).
 
 ### 1. Configurar la conexión
 
@@ -88,6 +88,7 @@ if (-not (Test-Path -LiteralPath .env)) {
 | `DB_USER` / `DB_PASSWORD` | Usuario y contraseña de MySQL |
 | `DB_LOGGING` | `true` para ver en consola las consultas SQL |
 | `PORT` | Puerto HTTP, 3001 por defecto; ajustar el proxy Vite si se cambia |
+| `SESSION_SECRET` | Secreto aleatorio de al menos 32 caracteres para firmar las sesiones |
 
 Las variables del proceso tienen prioridad sobre `.env`. Para pruebas usar un `DB_NAME` nuevo y exclusivo, y permisos sobre ese nombre.
 
@@ -111,7 +112,7 @@ Desde `backend/`:
 ```bash
 npm run db:create    # crea la base autospa (utf8mb4) si no existe
 npm run db:check     # comprueba conexión y versión antes de migrar
-npm run db:migrate   # crea las tablas services y orders
+npm run db:migrate   # crea las tablas services, orders y users
 npm run db:seed      # carga servicios y órdenes de demostración
 ```
 
@@ -121,7 +122,7 @@ Comprueba el resultado con:
 npm run db:status
 ```
 
-Debe listar las dos migraciones y los dos grupos de datos iniciales como aplicados, sin pendientes. Luego inicia el backend con `npm start`; la consola muestra `Conectado a MySQL ...`.
+Debe listar las tres migraciones y los dos grupos de datos iniciales como aplicados, sin pendientes. Luego crea una cuenta de personal siguiendo [el procedimiento local de autenticación](../docs/modulos/autenticacion.md) e inicia el backend con `npm start`; la consola muestra `Conectado a MySQL ...`.
 
 > `npm run db:create` necesita permiso para crear bases. Si tu usuario no lo tiene, crea la base como administrador con
 > `CREATE DATABASE autospa CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;` y continúa con `db:migrate`.
