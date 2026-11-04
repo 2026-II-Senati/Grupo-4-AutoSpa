@@ -1,0 +1,28 @@
+# Lo que NO entra en la imagen de la aplicación.
+
+# Dependencias y builds locales: la imagen instala y compila las suyas
+**/node_modules
+**/dist
+**/dist-ssr
+**/build
+**/coverage
+
+# Variables de entorno y credenciales: se pasan al contenedor desde Compose
+**/.env
+**/.env.*
+!**/.env.example
+
+# Repositorio, editores y registros
+.git
+.gitignore
+.vscode
+.idea
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+
+# Documentación y archivos de Docker: no los necesita la aplicación en ejecución
+docs
+compose.yaml
+Dockerfile
+.dockerignore

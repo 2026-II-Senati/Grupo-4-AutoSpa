@@ -7,7 +7,7 @@ Los resultados reales se mantienen en [comprobaciones](comprobaciones.md). Una i
 - Git, Node.js 24.22.1, npm 11.19.1 y navegador.
 - **MySQL Server ejecutándose**, 8.0.16 o posterior, InnoDB: instalado localmente o levantado con Docker Compose ([sección 8](#8-base-de-datos-con-docker-compose)). Workbench es un cliente gráfico; no sustituye al servidor. MariaDB no está admitido.
 - Usuario MySQL con permisos para una base de desarrollo/pruebas. Crear una base requiere permiso o intervención del administrador.
-- Docker Compose disponible solo para MySQL (`compose.yaml` en la raíz). Backend y frontend siguen ejecutándose con npm.
+- Docker Compose (`compose.yaml` en la raíz) permite levantar solo MySQL ([sección 8](#8-base-de-datos-con-docker-compose)) o AutoSpa completo sin Node.js ni MySQL locales ([sección 9](#9-autospa-completo-con-docker-compose)). La modalidad local con npm sigue disponible.
 
 ```powershell
 node -v
@@ -128,7 +128,7 @@ El [registro](comprobaciones.md#4-registro-de-resultados) informa qué se ejecut
 
 ## 8. Base de datos con Docker Compose
 
-Alternativa a instalar MySQL: `compose.yaml` levanta **solo MySQL 8.4.9** (imagen `mysql:8.4.9`) con un volumen con nombre. Backend y frontend siguen con npm (secciones 4 y 5).
+Alternativa a instalar MySQL: el servicio `mysql` de `compose.yaml` levanta **MySQL 8.4.9** (imagen `mysql:8.4.9`) con un volumen con nombre, mientras backend y frontend siguen con npm (secciones 4 y 5). Para ejecutar todo en Docker, ver la [sección 9](#9-autospa-completo-con-docker-compose).
 
 **Requisitos:** Docker Desktop iniciado («Engine running»; en Windows requiere WSL 2).
 
@@ -141,18 +141,18 @@ docker compose version
 
 | Archivo | Lo lee | Contenido |
 | --- | --- | --- |
-| `.env` (raíz) | Docker Compose | `MYSQL_PORT`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` |
+| `.env` (raíz) | Docker Compose | `MYSQL_PORT`, `APP_PORT`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` |
 | `backend/.env` | Backend | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 
 Usuario y contraseña de la aplicación deben coincidir en ambos. El backend nunca usa `root`.
 
-**Arrancar.** Desde la raíz, crear el entorno solo si no existe, cambiar las contraseñas y levantar el servicio:
+**Arrancar.** Desde la raíz, crear el entorno solo si no existe, cambiar las contraseñas y levantar **solo** el servicio de base de datos:
 
 ```powershell
 if (-not (Test-Path -LiteralPath .env)) {
     Copy-Item -LiteralPath .env.example -Destination .env
 }
-docker compose up -d
+docker compose up -d mysql
 ```
 
 El primer arranque crea la base `MYSQL_DATABASE` y el usuario `MYSQL_USER` con permisos solo sobre ella. Publica el puerto `127.0.0.1:3307` (configurable con `MYSQL_PORT`) para no interferir con un MySQL local en 3306.
@@ -180,11 +180,94 @@ No hace falta `db:create`: el contenedor ya crea la base. Si una migración o se
 **Detener y conservar datos.**
 
 ```powershell
-docker compose stop    # detiene MySQL; conserva datos
-docker compose start   # lo reanuda con las mismas tablas y datos
-docker compose down    # elimina el contenedor; el volumen se conserva
+docker compose stop mysql    # detiene MySQL; conserva datos
+docker compose start mysql   # lo reanuda con las mismas tablas y datos
+docker compose down          # elimina los contenedores; el volumen se conserva
 ```
 
 > ⚠️ `docker compose down -v` **elimina el volumen y todos sus datos**. Usarlo solo para empezar con una base vacía; después repetir migraciones y seeders.
 
-**Problemas frecuentes.** Puerto 3307 ocupado: cambiar `MYSQL_PORT` y el mismo valor en `DB_PORT`, y repetir `docker compose up -d`. Credenciales rechazadas: la contraseña de `backend/.env` no coincide con `MYSQL_PASSWORD`; el contenedor conserva la del primer arranque. `docker` sin respuesta: abrir Docker Desktop y esperar «Engine running».
+**Problemas frecuentes.** Puerto 3307 ocupado: cambiar `MYSQL_PORT` y el mismo valor en `DB_PORT`, y repetir `docker compose up -d mysql`. Credenciales rechazadas: la contraseña de `backend/.env` no coincide con `MYSQL_PASSWORD`; el contenedor conserva la del primer arranque. `docker` sin respuesta: abrir Docker Desktop y esperar «Engine running».
+
+## 9. AutoSpa completo con Docker Compose
+
+Ejecuta MySQL y la aplicación (React compilado + API Express) en contenedores. La computadora **no necesita Node.js, npm ni MySQL** instalados: solo Docker Desktop iniciado. Reutiliza el servicio `mysql` y su volumen de la sección 8: si ya tenías datos ahí, se conservan.
+
+| Servicio | Imagen | Puerto en la computadora | Para qué |
+| --- | --- | --- | --- |
+| `mysql` | `mysql:8.4.9` | `127.0.0.1:3307` (`MYSQL_PORT`) | Base de datos |
+| `app` | `autospa-app:local` (construida con el `Dockerfile`) | `127.0.0.1:8080` (`APP_PORT`) | Interfaz React y `/api/...` en la misma URL |
+
+Dentro de Docker la aplicación se conecta con `DB_HOST=mysql` y `DB_PORT=3306` (nombre del servicio y puerto interno), con el usuario de `MYSQL_USER`, nunca `root`. Compose toma usuario y contraseña del `.env` de la raíz; **no usa `backend/.env`**, que sigue siendo solo para la modalidad npm. El puerto 3307 es para acceder desde la computadora, no entre contenedores.
+
+### 9.1 Preparación inicial (una sola vez)
+
+Desde la raíz:
+
+```powershell
+if (-not (Test-Path -LiteralPath .env)) {
+    Copy-Item -LiteralPath .env.example -Destination .env
+}
+```
+
+Cambiar `MYSQL_PASSWORD` y `MYSQL_ROOT_PASSWORD` en `.env`. Luego construir la imagen, levantar los servicios y preparar la base:
+
+```powershell
+docker compose build app
+docker compose up -d
+docker compose ps
+docker compose run --rm app npm run db:migrate
+docker compose run --rm app npm run db:seed     # opcional: datos de demostración
+docker compose run --rm app npm run db:status
+```
+
+- `build` compila React e instala dependencias con los lockfiles **dentro** de la imagen.
+- `up -d` espera a que `mysql` esté `healthy` antes de arrancar `app`.
+- `ps` debe mostrar ambos servicios `healthy`. El de `app` comprueba `GET /api/health`.
+- `run --rm app ...` ejecuta el comando en un contenedor temporal con la misma configuración, sin npm en la computadora.
+- Los datos de demostración se cargan **solo** si ejecutas `db:seed`. Al arrancar nunca se ejecutan seeders, `reset`, `undo` ni borrados. Si una migración o un seeder ya estaba aplicado, la salida no lo vuelve a listar.
+
+Abrir **http://localhost:8080** (o el valor de `APP_PORT`). La misma URL sirve la interfaz y la API: http://localhost:8080/api/health debe devolver `{"message":"Backend de AutoSpa disponible"}`. No hace falta Vite.
+
+### 9.2 Uso habitual
+
+```powershell
+docker compose up -d          # iniciar MySQL y la aplicación
+docker compose ps             # estado: ambos healthy
+docker compose logs -f app    # mensajes de la aplicación (Ctrl+C para salir)
+docker compose logs mysql     # mensajes de MySQL
+docker compose stop           # detener; conserva los datos
+docker compose start          # reanudar con los mismos datos
+```
+
+### 9.3 Reconstruir tras cambios en el código
+
+La imagen contiene una copia del código. Después de `git pull` o de cambiar frontend o backend:
+
+```powershell
+docker compose up -d --build app
+docker compose run --rm app npm run db:migrate   # si llegaron migraciones nuevas
+```
+
+### 9.4 Comprobar registro y persistencia
+
+1. En http://localhost:8080 registrar una orden y recargar la página: debe seguir en el listado.
+2. **Detener y reanudar:** `docker compose stop` y luego `docker compose start`. Esperar `healthy` con `docker compose ps` y recargar: la orden sigue guardada.
+3. **Recrear los contenedores:** `docker compose down` (elimina contenedores y red, conserva el volumen) y luego `docker compose up -d`. Esperar `healthy` con `docker compose ps` y recargar: la orden sigue guardada, porque los datos están en el volumen y no en el contenedor.
+
+Para comprobar la preparación **desde una base vacía**, borrar antes el volumen de desarrollo con `docker compose down -v` (elimina todos los datos), repetir la [preparación inicial](#91-preparación-inicial-una-sola-vez) y confirmar que `db:migrate` aplica 2 migraciones y `db:seed` carga 2 seeders.
+
+### 9.5 Variables adicionales y seguridad
+
+- La imagen no incluye archivos `.env`, credenciales, `node_modules` locales, builds locales ni datos de MySQL (ver `.dockerignore`). La aplicación se ejecuta con el usuario sin privilegios `node`.
+- Variables adicionales para la aplicación, como las de autenticación cuando se integre, van en un archivo opcional `.env.app` en la raíz, con formato `NOMBRE=valor`. Compose lo pasa al contenedor `app` si existe, sin cambiar el código. No se sube al repositorio. Tras crearlo o modificarlo: `docker compose up -d app`.
+
+### 9.6 Detener y borrar
+
+```powershell
+docker compose down      # elimina contenedores y red; el volumen y los datos se conservan
+```
+
+> ⚠️ `docker compose down -v` **elimina también el volumen y todos los datos**. Después habría que repetir la preparación inicial.
+
+**Problemas frecuentes.** Puerto 8080 ocupado: cambiar `APP_PORT` en `.env` y repetir `docker compose up -d`. `app` se reinicia una y otra vez: revisar `docker compose logs app`; el mensaje indica si MySQL no responde o las credenciales no coinciden (sin mostrar la contraseña). La interfaz muestra datos de demostración: la imagen se construye con la API real; reconstruirla con `docker compose up -d --build app`.
