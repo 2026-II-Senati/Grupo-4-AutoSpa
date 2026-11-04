@@ -1,6 +1,6 @@
 # Backend de AutoSpa
 
-Este backend ofrece una ruta sencilla para comprobar que el servidor está activo.
+API de servicios y órdenes con persistencia MySQL; también sirve el frontend compilado. Rutas y respuestas: [contrato API](../docs/api.md). Preparación completa y modos de ejecución: [instalación](../docs/instalacion.md).
 
 ## Requisitos
 
@@ -8,6 +8,8 @@ Este backend ofrece una ruta sencilla para comprobar que el servidor está activ
 - npm 11.19.1
 
 - MySQL 8.0.16 o posterior (motor InnoDB). Versiones anteriores y MariaDB no aplican todas las restricciones `CHECK` del modelo.
+
+MySQL Server debe estar instalado y ejecutándose. Workbench es una herramienta cliente; abrirlo no inicia necesariamente el servidor. El arranque rechaza MariaDB.
 
 ## Instalar y arrancar
 
@@ -25,7 +27,7 @@ Para iniciar únicamente la API, ejecuta:
 npm start
 ```
 
-El servidor queda escuchando en el puerto `3001`.
+El servidor usa `PORT` (3001 por defecto). `npm start` también sirve `frontend/dist/` si ya existe; sin build, se puede consultar la API pero no abrir la interfaz en la raíz.
 
 ### Iniciar frontend y API en un solo servidor
 
@@ -67,14 +69,16 @@ En la terminal donde ejecutaste `npm start`, pulsa `Ctrl+C`.
 
 ## Base de datos
 
-El backend usa **MySQL** con **Sequelize** (modelos en `src/models/`) y **Umzug** para ejecutar migraciones y datos iniciales. El diseño de las tablas está en [`docs/modelo-datos.md`](../docs/modelo-datos.md). En este sprint se crean las tablas `services` y `orders`.
+El backend usa **MySQL** con **Sequelize** (modelos en `src/models/`) y **Umzug** para ejecutar migraciones y datos iniciales. El diseño de las tablas está en [`docs/modelo-datos.md`](../docs/modelo-datos.md). Las migraciones crean `services`, `orders` y `users`; la autenticación del personal se describe en [Autenticación](../docs/modulos/autenticacion.md).
 
 ### 1. Configurar la conexión
 
-Copia el archivo de ejemplo y edita los valores con los de tu MySQL local:
+Crea el archivo solo si no existe y edita los valores localmente, sin sobrescribir una configuración previa:
 
 ```powershell
-Copy-Item .env.example .env
+if (-not (Test-Path -LiteralPath .env)) {
+    Copy-Item -LiteralPath .env.example -Destination .env
+}
 ```
 
 | Variable | Descripción |
@@ -83,6 +87,10 @@ Copy-Item .env.example .env
 | `DB_NAME` | Nombre de la base del proyecto (`autospa`) |
 | `DB_USER` / `DB_PASSWORD` | Usuario y contraseña de MySQL |
 | `DB_LOGGING` | `true` para ver en consola las consultas SQL |
+| `PORT` | Puerto HTTP, 3001 por defecto; ajustar el proxy Vite si se cambia |
+| `SESSION_SECRET` | Secreto aleatorio de al menos 32 caracteres para firmar las sesiones |
+
+Las variables del proceso tienen prioridad sobre `.env`. Para pruebas usar un `DB_NAME` nuevo y exclusivo, y permisos sobre ese nombre.
 
 `backend/.env` contiene tu contraseña: está excluido por `.gitignore` y **no debe subirse**. Si cambias una variable, actualiza también `.env.example` con un valor de ejemplo.
 
@@ -95,7 +103,7 @@ CREATE USER IF NOT EXISTS 'autospa_app'@'localhost' IDENTIFIED BY 'tu_contrasena
 GRANT ALL PRIVILEGES ON autospa.* TO 'autospa_app'@'localhost';
 ```
 
-Escribe ese usuario y contraseña en `backend/.env`. Si `DB_HOST` es `127.0.0.1` y MySQL rechaza al usuario, crea también `'autospa_app'@'127.0.0.1'` con el mismo permiso.
+Escribe ese usuario y contraseña en `backend/.env`. El nombre `autospa` es un ejemplo: para una base exclusiva, sustituirlo por el mismo `DB_NAME` en CREATE DATABASE y GRANT. El administrador puede crear la base y conceder permisos solo sobre ella; no se necesitan permisos globales para ejecutar migraciones. Revisar el host de la cuenta si la conexión se rechaza, antes de crear otra cuenta.
 
 ### 3. Preparar una base vacía y cargar los datos iniciales
 
@@ -103,7 +111,8 @@ Desde `backend/`:
 
 ```bash
 npm run db:create    # crea la base autospa (utf8mb4) si no existe
-npm run db:migrate   # crea las tablas services y orders
+npm run db:check     # comprueba conexión y versión antes de migrar
+npm run db:migrate   # crea las tablas services, orders y users
 npm run db:seed      # carga servicios y órdenes de demostración
 ```
 
@@ -113,10 +122,12 @@ Comprueba el resultado con:
 npm run db:status
 ```
 
-Debe listar las dos migraciones y los dos grupos de datos iniciales como aplicados, sin pendientes. Luego inicia el backend con `npm start`; la consola muestra `Conectado a MySQL ...`.
+Debe listar las tres migraciones y los dos grupos de datos iniciales como aplicados, sin pendientes. Luego crea una cuenta de personal siguiendo [el procedimiento local de autenticación](../docs/modulos/autenticacion.md) e inicia el backend con `npm start`; la consola muestra `Conectado a MySQL ...`.
 
 > `npm run db:create` necesita permiso para crear bases. Si tu usuario no lo tiene, crea la base como administrador con
 > `CREATE DATABASE autospa CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;` y continúa con `db:migrate`.
+
+Usar el nombre configurado en DB_NAME. Para comprobar una instalación limpia, preparar una base nueva; no aplicar seeders sobre datos que deban conservarse. Véase [validación desde un clon nuevo](../docs/instalacion.md#7-validación-desde-un-clon-nuevo-y-base-vacía).
 
 ### Otros comandos
 
@@ -129,6 +140,8 @@ Debe listar las dos migraciones y los dos grupos de datos iniciales como aplicad
 | `npm run db:seed:undo` | Retira los datos de demostración |
 
 Las migraciones aplicadas se registran en la tabla `sequelize_meta` y los datos iniciales en `sequelize_seeds`, por eso cada comando solo ejecuta lo pendiente. Para cambiar la estructura, agrega una migración nueva en `src/db/migrations/` y regístrala en su `index.js`; no modifiques migraciones ya integradas en `develop`.
+
+`db:reset` no es una reparación automática: elimina datos y se limita a bases de desarrollo prescindibles cuya pérdida se haya aceptado. No usar reset ni undo sobre bases existentes durante la validación.
 
 ### Datos de demostración
 
@@ -161,6 +174,10 @@ Todos los datos son ficticios.
 | `el servidor MySQL no responde` | Inicia el servicio MySQL (Windows: `services.msc` → MySQL80 → Iniciar) |
 | `usuario o contraseña incorrectos` | Revisa `DB_USER` y `DB_PASSWORD` |
 | `la base de datos "autospa" no existe` | Ejecuta `npm run db:create` |
-| `ER_CHECK_CONSTRAINT_VIOLATED` o `ER_DUP_ENTRY` al cargar datos | Los datos ya estaban cargados o la base tiene datos previos. Usa `npm run db:reset` |
+| `ER_CHECK_CONSTRAINT_VIOLATED` o `ER_DUP_ENTRY` al cargar datos | Revisar `db:status` y los datos existentes. Para repetir la instalación, elegir una base nueva; no ejecutar reset automáticamente |
 
 Los mensajes de error indican servidor, base y usuario, pero nunca la contraseña.
+
+## Pruebas
+
+`npm test` usa mocks; `npm run test:mysql` usa MySQL real en un esquema nuevo aleatorio que conserva al terminar. Necesita permiso para crear esa base. No equivalen a un recorrido visual. Resultados y pendientes: [guía de comprobaciones](../docs/comprobaciones.md).
