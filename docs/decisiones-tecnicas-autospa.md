@@ -24,9 +24,9 @@ Versiones en package.json y lockfiles de cada aplicación; instalar con `npm ci`
 
 ## 3. Persistencia y contrato
 
-MySQL está decidido e implementado. El [modelo](modelo-datos.md) describe services/orders actuales y usuarios/auditoría futuros. Las migraciones crean services/orders; los seeders son demostración, no evidencia de validación.
+MySQL está decidido e implementado. El [modelo](modelo-datos.md) describe las tablas services, orders y users; la auditoría de órdenes permanece para una entrega posterior. Las migraciones crean las tres tablas; los seeders son demostración, no evidencia de validación.
 
-El [contrato](api.md) fija los tres endpoints de servicios/órdenes y health. Cada orden tiene un servicio, copia histórica de nombre/precio y placa normalizada con unicidad entre estados activos. Este PR documental no modifica contratos ni esquemas.
+El [contrato](api.md) fija los endpoints de servicios, órdenes, autenticación y health. Cada orden tiene un servicio, copia histórica de nombre/precio y placa normalizada con unicidad entre estados activos. La autenticación del personal usa sesiones de servidor.
 
 ## 4. Ejecución
 

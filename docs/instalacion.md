@@ -43,7 +43,7 @@ if (-not (Test-Path -LiteralPath backend/.env)) {
 }
 ```
 
-Editar localmente DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_LOGGING y PORT. No sobrescribir un .env existente. Las variables del proceso prevalecen sobre el archivo; revisar valores heredados sin publicar secretos.
+Editar localmente DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_LOGGING, PORT y `SESSION_SECRET` (secreto aleatorio de al menos 32 caracteres). No sobrescribir un .env existente. Las variables del proceso prevalecen sobre el archivo; revisar valores heredados sin publicar secretos.
 
 Para comprobaciones elegir una base **nueva y exclusiva**, por ejemplo `autospa_pr12_<identificador>`, y permisos sobre ese nombre según la guía del backend. No reutilizar datos que deban conservarse.
 
@@ -57,7 +57,7 @@ npm run db:seed
 npm run db:status
 ```
 
-db:create crea la base configurada si no existe. Si no tiene permiso, el administrador debe crearla antes de db:check. En una instalación nueva con demostración, status debe mostrar dos migraciones y dos seeders aplicados, sin pendientes.
+db:create crea la base configurada si no existe. Si no tiene permiso, el administrador debe crearla antes de db:check. En una instalación nueva con demostración, status debe mostrar tres migraciones y dos seeders aplicados, sin pendientes. Para crear una cuenta local de personal, sigue [el procedimiento de autenticación](modulos/autenticacion.md).
 
 **No usar db:reset como reparación automática.** Elimina datos y recrea tablas. Se limita a bases de desarrollo prescindibles cuya pérdida se haya aceptado. Ante datos previos o error de seeder, revisar el estado y elegir una base nueva. No ejecutar undo/reset sobre bases existentes durante estas comprobaciones.
 
