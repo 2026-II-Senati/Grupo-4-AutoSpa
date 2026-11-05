@@ -2,7 +2,7 @@
 
 Este módulo administra el catálogo de servicios con persistencia en MySQL. Las rutas administrativas usan el middleware compartido `requireAuth` y una sesión válida.
 
-## Rutas
+## Endpoints
 
 - `GET /api/services/manage`: lista activos e inactivos, ordenados por `id ASC`.
 - `POST /api/services`: crea un servicio activo. Recibe `name`, `description` opcional y `price` decimal con dos decimales.
