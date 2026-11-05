@@ -9,10 +9,13 @@ Service.hasMany(Order, { foreignKey: 'serviceId', as: 'orders' });
 Order.belongsTo(Service, { foreignKey: 'serviceId', as: 'service' });
 Order.hasMany(OrderStatusChange, { foreignKey: 'orderId', as: 'statusChanges' });
 OrderStatusChange.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
-Order.belongsTo(User, { foreignKey: 'createdByUserId', as: 'createdBy' });
-User.hasMany(Order, { foreignKey: 'createdByUserId', as: 'orders' });
-OrderStatusChange.belongsTo(User, { foreignKey: 'changedByUserId', as: 'changedBy' });
-User.hasMany(OrderStatusChange, { foreignKey: 'changedByUserId', as: 'orderStatusChanges' });
 
-export { sequelize, Service, Order, OrderStatusChange, ORDER_STATUSES, ACTIVE_ORDER_STATUSES };
-export { User };
+export {
+  sequelize,
+  Service,
+  Order,
+  OrderStatusChange,
+  User,
+  ORDER_STATUSES,
+  ACTIVE_ORDER_STATUSES,
+};
