@@ -133,6 +133,38 @@ h1 span { color: var(--teal); }
 .empty-icon { display: grid; width: 42px; height: 42px; margin-bottom: 4px; place-items: center; border-radius: 50%; background: #eff6f5; color: var(--teal); font-size: 20px; }
 .error-state { flex-direction: column; color: #a64b40; }
 .text-button { border: 0; background: none; color: var(--teal-dark); font-size: 11px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.orders-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.refresh-orders-button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--teal);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, opacity .2s;
+}
+
+.refresh-orders-button:hover:not(:disabled) {
+  background: var(--teal-dark);
+}
+
+.refresh-orders-button:disabled {
+  cursor: wait;
+  opacity: .7;
+}
+
+.refresh-orders-button:focus-visible {
+  outline: 3px solid #9bd4ce;
+  outline-offset: 3px;
+}
 @media (max-width: 1050px) { .orders-layout { grid-template-columns: 1fr; } }
 @media (max-width: 1050px) { .sidebar { width: 220px; } .main-content { margin-left: 220px; padding-right: 4%; padding-left: 4%; } }
 @media (max-width: 700px) {

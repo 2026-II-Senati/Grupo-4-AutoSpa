@@ -62,6 +62,7 @@ app.use(
 app.get('/api/health', (_req, res) => {
   res.status(200).json({
     message: 'Backend de AutoSpa disponible',
+    status: 'ok',
   });
 });
 

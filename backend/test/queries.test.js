@@ -164,8 +164,12 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
       assert.deepEqual(await get(path), { status: 200, body: { data: [] } });
     }
     assert.deepEqual(await get('/health'), {
-      status: 200, body: { message: 'Backend de AutoSpa disponible' },
-    });
+  status: 200,
+  body: {
+    message: 'Backend de AutoSpa disponible',
+    status: 'ok',
+  },
+});
   });
   await t.test('status changes reject requests without an authenticated user', async () => {
     const authenticatedCookie = cookie;
