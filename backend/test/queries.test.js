@@ -9,7 +9,6 @@ Object.assign(process.env, {
   DB_USER: 'unused', DB_PASSWORD: '', DB_LOGGING: 'false', PORT: '0',
   SESSION_SECRET: 'test-session-secret-with-more-than-32-characters',
 });
-
 const { sequelize, Service, Order, User } = await import('../src/models/index.js');
 const { presentOrder } = await import('../src/services/order-response.js');
 const { hashPassword } = await import('../src/services/password-hash.js');
@@ -22,15 +21,12 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
   };
   let server;
   let cookie;
-
   sequelize.authenticate = async () => {};
   sequelize.query = async () => [[{ version: '8.0.46' }]];
-
   express.application.listen = function (...args) {
     server = originals.listen.apply(this, args);
     return server;
   };
-
   t.after(async () => {
     express.application.listen = originals.listen;
     Service.findAll = originals.services;
@@ -42,130 +38,84 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
     await new Promise((resolve) => server.close(resolve));
     await sequelize.close();
   });
-
   await import('../src/server.js');
-
-  if (!server.listening) {
-    await new Promise((resolve) => server.once('listening', resolve));
-  }
-
+  if (!server.listening) await new Promise((resolve) => server.once('listening', resolve));
   const base = `http://127.0.0.1:${server.address().port}/api`;
-
   async function get(path) {
-    const response = await fetch(base + path, {
-      headers: cookie ? { cookie } : {},
-    });
+    const response = await fetch(base + path, { headers: cookie ? { cookie } : {} });
+    return { status: response.status, body: await response.json() };
+  }
+  async function patch(path, body) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (cookie) headers.cookie = cookie;
+    const response = await fetch(base + path, { method: 'PATCH', headers, body: JSON.stringify(body) });
     return { status: response.status, body: await response.json() };
   }
 
   async function post(path, body, includeCookie = false) {
     const headers = { 'content-type': 'application/json' };
     if (includeCookie && cookie) headers.cookie = cookie;
-
-    return fetch(base + path, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
+    return fetch(base + path, { method: 'POST', headers, body: JSON.stringify(body) });
   }
 
   await t.test('authentication: invalid credentials, login, me, protected route and logout', async () => {
+    const unauthenticatedOrder = await post('/orders', {});
+    assert.equal(unauthenticatedOrder.status, 401);
+    assert.equal((await unauthenticatedOrder.json()).error.code, 'AUTHENTICATION_REQUIRED');
+
     const password = ' secret ';
     const passwordHash = await hashPassword(password);
-
     User.findOne = async (options) => {
       assert.equal(options.where.email, 'personal@example.com');
       return {
-        id: 1,
-        name: 'Usuario de prueba',
-        email: 'personal@example.com',
-        passwordHash,
-        isActive: true,
+        id: 1, name: 'Usuario de prueba', email: 'personal@example.com',
+        passwordHash, isActive: true,
       };
     };
-
     User.findByPk = async (id) => {
       assert.equal(id, 1);
-      return {
-        id: 1,
-        name: 'Usuario de prueba',
-        email: 'personal@example.com',
-        isActive: true,
-      };
+      return { id: 1, name: 'Usuario de prueba', email: 'personal@example.com', isActive: true };
     };
 
     assert.deepEqual(await get('/orders'), {
       status: 401,
-      body: {
-        error: {
-          code: 'AUTHENTICATION_REQUIRED',
-          message: 'Inicia sesión para continuar.',
-          details: [],
-        },
-      },
+      body: { error: { code: 'AUTHENTICATION_REQUIRED', message: 'Inicia sesión para continuar.', details: [] } },
     });
 
     const invalid = await post('/auth/login', {
-      email: ' Personal@Example.com ',
-      password: 'wrong',
+      email: ' Personal@Example.com ', password: 'wrong',
     });
-
     assert.equal(invalid.status, 401);
     assert.equal((await invalid.json()).error.code, 'INVALID_CREDENTIALS');
 
     User.findOne = async () => ({
-      id: 1,
-      name: 'Usuario de prueba',
-      email: 'personal@example.com',
-      passwordHash,
-      isActive: false,
+      id: 1, name: 'Usuario de prueba', email: 'personal@example.com',
+      passwordHash, isActive: false,
     });
-
     const inactive = await post('/auth/login', {
-      email: 'personal@example.com',
-      password,
+      email: 'personal@example.com', password,
     });
-
     assert.equal(inactive.status, 401);
-
     User.findOne = async () => ({
-      id: 1,
-      name: 'Usuario de prueba',
-      email: 'personal@example.com',
-      passwordHash,
-      isActive: true,
+      id: 1, name: 'Usuario de prueba', email: 'personal@example.com',
+      passwordHash, isActive: true,
     });
 
     const login = await post('/auth/login', {
-      email: ' Personal@Example.com ',
-      password,
+      email: ' Personal@Example.com ', password,
     });
-
     assert.equal(login.status, 200);
-
     assert.deepEqual(await login.json(), {
-      data: {
-        id: 1,
-        name: 'Usuario de prueba',
-        email: 'personal@example.com',
-      },
+      data: { id: 1, name: 'Usuario de prueba', email: 'personal@example.com' },
     });
-
     const setCookie = login.headers.get('set-cookie');
     assert.match(setCookie, /HttpOnly/i);
     cookie = setCookie.split(';', 1)[0];
 
     assert.deepEqual(await get('/auth/me'), {
       status: 200,
-      body: {
-        data: {
-          id: 1,
-          name: 'Usuario de prueba',
-          email: 'personal@example.com',
-        },
-      },
+      body: { data: { id: 1, name: 'Usuario de prueba', email: 'personal@example.com' } },
     });
-
     Order.findAll = async () => [];
     assert.equal((await get('/orders')).status, 200);
 
@@ -173,12 +123,9 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
     assert.equal(logout.status, 200);
     assert.deepEqual(await logout.json(), { data: null });
     assert.equal((await get('/orders')).status, 401);
-
     const newLogin = await post('/auth/login', {
-      email: 'personal@example.com',
-      password,
+      email: 'personal@example.com', password,
     });
-
     assert.equal(newLogin.status, 200);
     cookie = newLogin.headers.get('set-cookie').split(';', 1)[0];
   });
@@ -187,111 +134,61 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
     Service.findAll = async (options) => {
       assert.deepEqual(options, {
         attributes: ['id', 'name', 'description', 'price'],
-        where: { isActive: true },
-        order: [['id', 'ASC']],
-        raw: true,
+        where: { isActive: true }, order: [['id', 'ASC']], raw: true,
       });
-
-      return [{
-        id: 2,
-        name: 'Lavado',
-        description: null,
-        price: '20.00',
-      }];
+      return [{ id: 2, name: 'Lavado', description: null, price: '20.00' }];
     };
-
     assert.deepEqual(await get('/services'), {
-      status: 200,
-      body: {
-        data: [{
-          id: 2,
-          name: 'Lavado',
-          description: null,
-          price: '20.00',
-        }],
-      },
+      status: 200, body: { data: [{ id: 2, name: 'Lavado', description: null, price: '20.00' }] },
     });
   });
-
   await t.test('orders: real attributes, active states, stable order and historical values', async () => {
     const row = {
-      id: 7,
-      plate: 'ABC123',
-      customerName: 'Ana',
-      customerPhone: null,
-      serviceId: 2,
-      serviceName: 'Original',
-      servicePrice: '20.00',
-      status: 'ready',
-      createdAt: new Date('2026-10-01T10:00:00Z'),
-      updatedAt: new Date('2026-10-01T11:00:00Z'),
+      id: 7, plate: 'ABC123', customerName: 'Ana', customerPhone: null,
+      serviceId: 2, serviceName: 'Original', servicePrice: '20.00', status: 'ready',
+      createdAt: new Date('2026-10-01T10:00:00Z'), updatedAt: new Date('2026-10-01T11:00:00Z'),
     };
-
     Order.findAll = async (options) => {
-      assert.deepEqual(options.where.status[Op.in], [
-        'waiting',
-        'washing',
-        'ready',
-      ]);
-      assert.deepEqual(options.order, [
-        ['createdAt', 'ASC'],
-        ['id', 'ASC'],
-      ]);
+      assert.deepEqual(options.where.status[Op.in], ['waiting', 'washing', 'ready']);
+      assert.deepEqual(options.order, [['createdAt', 'ASC'], ['id', 'ASC']]);
       assert.deepEqual(options.attributes, Object.keys(row));
       assert.equal(options.include, undefined);
       assert.equal(options.raw, true);
-
       return [row];
     };
-
-    assert.deepEqual(await get('/orders'), {
-      status: 200,
-      body: { data: [presentOrder(row)] },
-    });
+    assert.deepEqual(await get('/orders'), { status: 200, body: { data: [presentOrder(row)] } });
   });
-
-  await t.test('empty queries and health status', async () => {
+  await t.test('empty queries and unchanged health', async () => {
     Service.findAll = Order.findAll = async () => [];
-
     for (const path of ['/services', '/orders']) {
-      assert.deepEqual(await get(path), {
-        status: 200,
-        body: { data: [] },
-      });
+      assert.deepEqual(await get(path), { status: 200, body: { data: [] } });
     }
-
     assert.deepEqual(await get('/health'), {
-      status: 200,
-      body: {
-        message: 'Backend de AutoSpa disponible',
-        status: 'ok',
-      },
-    });
+  status: 200,
+  body: {
+    message: 'Backend de AutoSpa disponible',
+    status: 'ok',
+  },
+});
   });
-
+  await t.test('status changes reject requests without an authenticated user', async () => {
+    const authenticatedCookie = cookie;
+    cookie = undefined;
+    assert.deepEqual(await patch('/orders/1/status', { expectedStatus: 'waiting', status: 'washing' }), {
+      status: 401,
+      body: { error: { code: 'AUTHENTICATION_REQUIRED', message: 'Inicia sesión para continuar.', details: [] } },
+    });
+    cookie = authenticatedCookie;
+  });
   await t.test('temporary and unexpected errors have exact contract (injected errors)', async () => {
     for (const [code, status, apiCode, message] of [
       ['ECONNREFUSED', 503, 'TEMPORARILY_UNAVAILABLE', 'El servicio no está disponible temporalmente. Inténtalo nuevamente.'],
       ['ER_LOCK_DEADLOCK', 503, 'TEMPORARILY_UNAVAILABLE', 'El servicio no está disponible temporalmente. Inténtalo nuevamente.'],
       ['UNEXPECTED', 500, 'INTERNAL_ERROR', 'No se pudo completar la operación. Inténtalo nuevamente.'],
     ]) {
-      Service.findAll = Order.findAll = async () => {
-        throw Object.assign(new Error('private SQL'), {
-          original: { code },
-        });
-      };
-
+      Service.findAll = Order.findAll = async () => { throw Object.assign(new Error('private SQL'), { original: { code } }); };
       for (const path of ['/services', '/orders']) {
-        assert.deepEqual(await get(path), {
-          status,
-          body: {
-            error: {
-              code: apiCode,
-              message,
-              details: [],
-            },
-          },
-        });
+        assert.deepEqual(await get(path), { status, body: { error: { code: apiCode, message, details: [] } } });
       }
     }
   });
