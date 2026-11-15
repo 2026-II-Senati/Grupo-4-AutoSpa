@@ -142,22 +142,73 @@ test('HTTP queries and shared error handler (mocks, without MySQL)', async (t) =
       status: 200, body: { data: [{ id: 2, name: 'Lavado', description: null, price: '20.00' }] },
     });
   });
+
   await t.test('orders: real attributes, active states, stable order and historical values', async () => {
     const row = {
-      id: 7, plate: 'ABC123', customerName: 'Ana', customerPhone: null,
-      serviceId: 2, serviceName: 'Original', servicePrice: '20.00', status: 'ready',
-      createdAt: new Date('2026-10-01T10:00:00Z'), updatedAt: new Date('2026-10-01T11:00:00Z'),
+      id: 7,
+      plate: 'ABC123',
+      customerName: 'Ana',
+      customerPhone: null,
+
+      vehicleBrand: null,
+      vehicleModel: null,
+      vehicleType: null,
+      vehicleSize: null,
+      dirtLevel: null,
+
+      extraVacuum: false,
+      extraWaxing: false,
+      engineCleaning: false,
+
+      serviceId: 2,
+      serviceName: 'Original',
+      servicePrice: '20.00',
+      discountAmount: '0.00',
+      finalPrice: '20.00',
+
+      status: 'ready',
+      createdAt: new Date('2026-10-01T10:00:00Z'),
+      updatedAt: new Date('2026-10-01T11:00:00Z'),
     };
+
     Order.findAll = async (options) => {
-      assert.deepEqual(options.where.status[Op.in], ['waiting', 'washing', 'ready']);
-      assert.deepEqual(options.order, [['createdAt', 'ASC'], ['id', 'ASC']]);
+      assert.deepEqual(options.where.status[Op.in], [
+        'waiting',
+        'washing',
+        'ready',
+      ]);
+
+      assert.deepEqual(options.order, [
+        ['createdAt', 'ASC'],
+        ['id', 'ASC'],
+      ]);
+
       assert.deepEqual(options.attributes, Object.keys(row));
       assert.equal(options.include, undefined);
       assert.equal(options.raw, true);
+
       return [row];
     };
-    assert.deepEqual(await get('/orders'), { status: 200, body: { data: [presentOrder(row)] } });
+
+    const result = await get('/orders');
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body, {
+      data: [presentOrder(row)],
+    });
+
+    const order = result.body.data[0];
+
+    assert.equal(order.servicePrice, '20.00');
+    assert.equal(order.discountAmount, '0.00');
+    assert.equal(order.finalPrice, '20.00');
+    assert.equal(order.extraVacuum, false);
+    assert.equal(order.extraWaxing, false);
+    assert.equal(order.engineCleaning, false);
+    assert.equal(order.vehicleBrand, null);
+    assert.equal(order.vehicleModel, null);
   });
+
   await t.test('empty queries and unchanged health', async () => {
     Service.findAll = Order.findAll = async () => [];
     for (const path of ['/services', '/orders']) {

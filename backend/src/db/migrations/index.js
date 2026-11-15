@@ -3,6 +3,7 @@ import * as createOrders from './20261026000002-create-orders.js';
 import * as createUsers from './20261103000001-create-users.js';
 import * as addOrderCreator from './20261103000001-add-orders-created-by-user.js';
 import * as createOrderStatusChanges from './20261103000002-create-order-status-changes.js';
+import * as addOrderVehicleAndPricingFields from './20261115000001-add-order-vehicle-and-pricing-fields.js';
 
 // Las migraciones que referencian users dependen de que la migración de autenticación
 // se registre antes de addOrderCreator. No cambies migraciones ya integradas.
@@ -12,4 +13,5 @@ export const migrations = [
   { name: '20261103000001-create-users', ...createUsers },
   { name: '20261103000001-add-orders-created-by-user', ...addOrderCreator },
   { name: '20261103000002-create-order-status-changes', ...createOrderStatusChanges },
+  { name: '20261115000001-add-order-vehicle-and-pricing-fields', ...addOrderVehicleAndPricingFields },
 ];

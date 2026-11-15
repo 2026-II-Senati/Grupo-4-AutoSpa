@@ -194,3 +194,109 @@ h1 span { color: var(--teal); }
   .hero-hint { margin-top: 23px; font-size: 10px; }
   .page-footer { gap: 12px; font-size: 9px; }
 }
+
+/* Formulario ampliado de órdenes */
+
+.form-section-title {
+  margin: 4px 0 0;
+  color: #344a51;
+  font: 750 13px 'Manrope', sans-serif;
+  letter-spacing: -.2px;
+}
+
+.form-divider {
+  height: 1px;
+  margin: 5px 0;
+  background: #e8edef;
+}
+
+.order-form label small {
+  color: #89989c;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.extra-options {
+  display: grid;
+  gap: 11px;
+  padding: 13px;
+  border: 1px solid #e7edef;
+  border-radius: 8px;
+  background: #fafcfc;
+}
+
+.order-form .checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #53666d;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.order-form .checkbox-option input[type="checkbox"] {
+  width: 16px;
+  min-height: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
+.field-help {
+  margin: 0;
+  color: #89989c;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.price-summary {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f3f8f7;
+}
+
+.price-summary > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #687d80;
+  font-size: 11px;
+}
+
+.price-summary strong {
+  color: #344a51;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.price-summary .price-total {
+  margin-top: 3px;
+  padding-top: 11px;
+  border-top: 1px solid #dceae7;
+  color: var(--teal-dark);
+  font-weight: 700;
+}
+
+.price-summary .price-total strong {
+  color: var(--teal-dark);
+  font-size: 16px;
+}
+
+.orders-table {
+  min-width: 720px;
+}
+
+.orders-table td {
+  line-height: 1.5;
+}
+
+.orders-table td small {
+  max-width: 230px;
+  white-space: normal;
+}

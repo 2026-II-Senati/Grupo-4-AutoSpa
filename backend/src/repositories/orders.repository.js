@@ -1,5 +1,10 @@
+
 import { Op } from 'sequelize';
-import { Order, OrderStatusChange, ACTIVE_ORDER_STATUSES } from '../models/index.js';
+import {
+  Order,
+  OrderStatusChange,
+  ACTIVE_ORDER_STATUSES,
+} from '../models/index.js';
 import { presentOrder } from '../services/order-response.js';
 
 export async function findActiveOrders() {
@@ -9,14 +14,26 @@ export async function findActiveOrders() {
       'plate',
       'customerName',
       'customerPhone',
+      'vehicleBrand',
+      'vehicleModel',
+      'vehicleType',
+      'vehicleSize',
+      'dirtLevel',
+      'extraVacuum',
+      'extraWaxing',
+      'engineCleaning',
       'serviceId',
       'serviceName',
       'servicePrice',
+      'discountAmount',
+      'finalPrice',
       'status',
       'createdAt',
       'updatedAt',
     ],
-    where: { status: { [Op.in]: [...ACTIVE_ORDER_STATUSES] } },
+    where: {
+      status: { [Op.in]: [...ACTIVE_ORDER_STATUSES] },
+    },
     order: [['createdAt', 'ASC'], ['id', 'ASC']],
     raw: true,
   });
@@ -25,13 +42,36 @@ export async function findActiveOrders() {
 }
 
 export function findOrderForUpdate(id, transaction) {
-  return Order.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
+  return Order.findByPk(id, {
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
 }
 
-export async function saveStatusChange(order, { fromStatus, status, userId, reason, changedAt }, transaction) {
+export async function saveStatusChange(
+  order,
+  { fromStatus, status, userId, reason, changedAt },
+  transaction,
+) {
   order.status = status;
   order.updatedAt = changedAt;
-  await order.save({ transaction, fields: ['status', 'updatedAt'] });
-  await OrderStatusChange.create({ orderId: order.id, fromStatus, toStatus: status, changedByUserId: userId, changedAt, reason }, { transaction });
+
+  await order.save({
+    transaction,
+    fields: ['status', 'updatedAt'],
+  });
+
+  await OrderStatusChange.create(
+    {
+      orderId: order.id,
+      fromStatus,
+      toStatus: status,
+      changedByUserId: userId,
+      changedAt,
+      reason,
+    },
+    { transaction },
+  );
+
   return order;
 }
